@@ -1,0 +1,13 @@
+tag v1.4.7.1
+3fb3e00b244b6c392478e11c6e72d1f45b4dba72
+Adirelle <adirelle@tagada-team.net>
+2012-01-12 08:47:30 +0100
+
+Tagging as v1.4.7.1.
+
+
+--------------------
+
+Adirelle:
+	- Locales updated.
+	- Added "known issues" to the README file.
