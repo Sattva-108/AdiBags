@@ -17,8 +17,8 @@
 
 
 ## Usage
-`/adibags` - chat command to open configure menu for AdiBags.
-1. Enable / Change modules by selecting them in the AdibBags menu (`/adibags` command).
+`/ab` or `/adibags` - chat command to open configure menu for AdiBags.
+1. Enable / Change modules by selecting them in the AdibBags menu (`/ab` command).
 2. `Left-Click` bag icon in top-left corner to manage your current bags. 
 3. `Right-click` on any of your current bags to automatically sort bag space out of it (to another bags), so you can replace it by new one.
 4. `Left-Click` an item in your bag and drag to desired catergory title within a bag, to assign it to another category.
