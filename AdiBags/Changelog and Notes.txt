@@ -3,9 +3,7 @@ Addon is backported and ready to release.
 
 
 
-	What i couldn't test:
-
-
-
-	TODO List:
-
+	To-Do List:
+Make config menu accessable by right clicking "Backpack" title on top.
+Add currencies module (badges,honor & arenap point and other)
+Change how manual filtering categories are displayed (currently if there is too many items, it gets messy, but it's working fine)
