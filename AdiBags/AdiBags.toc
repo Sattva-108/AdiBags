@@ -1,15 +1,15 @@
-## Interface: 40300
-## X-Curse-Packaged-Version: v1.4.7.1
-## X-Curse-Project-Name: AdiBags
-## X-Curse-Project-ID: adibags
-## X-Curse-Repository-ID: wow/adibags/mainline
+## Interface: 30300
+## X-GitHub-Repository: Sattva-108/AdiBags-WoTLK-3.3.5
+## X-GitHub-Project-Homepage: https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5
+## X-GitHub-Project-Licence: MIT
+## X-GitHub-Project-Issues: https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/issues
+## X-GitHub-Project-Download: https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/archive/refs/heads/main.zip
 
 ## Title: AdiBags
 ## Notes: Adirelle's bag addon.
-## Author: Adirelle
-## Version: v1.4.7.1
+## Author: Adirelle, backported to 3.3.5 by Sattva#7238 - discord
+## Version: 3.3.5
 ## SavedVariables: AdiBagsDB
-## X-Date: 2012-01-12T07:44:29Z
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibBabble-Inventory-3.0, AdiDebug, Scrap, BrainDead, ProfessionsVault
 
 #@no-lib-strip@
@@ -51,7 +51,6 @@ modules\TidyBags.lua
 modules\MoneyFrame.lua
 modules\FilterOverride.lua
 modules\Junk.lua
-modules\CurrencyFrame.lua
 modules\TooltipInfo.lua
 modules\SectionVisibilityDropdown.lua
 

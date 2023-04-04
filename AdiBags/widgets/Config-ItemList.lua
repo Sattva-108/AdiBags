@@ -109,7 +109,7 @@ do
 		self.itemId = itemId
 		if itemId then
 			local _, _, _, _, _, _, _, _, _, texture = GetItemInfo(itemId)
-			self.frame:SetNormalTexture(texture or [[Interface\\Icons\\INV_Misc_QuestionMark]])
+			self.frame:SetNormalTexture(texture or [[Interface\Icons\INV_Misc_QuestionMark]])
 			self.frame:GetNormalTexture():SetTexCoord(0, 1, 0, 1)
 		else
 			self.frame:SetNormalTexture([[Interface\Buttons\UI-Slot-Background]])

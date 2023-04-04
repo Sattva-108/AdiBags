@@ -134,7 +134,7 @@ local function __GetDistinctItemID(link)
 	if not link or not addon.IsValidItemLink(link) then return end
 	local itemString, id, enchant, gem1, gem2, gem3, gem4, suffix, reforge = strmatch(link, '(item:(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):(%-?%d+):%-?%d+:%-?%d+:(%-?%d+))')
 	id = tonumber(id)
-	local equipSlot = select(9, GetItemInfo(id))
+	local equipSlot = id and select(9, GetItemInfo(id))
 	if equipSlot and equipSlot ~= "" and equipSlot ~= "INVTYPE_BAG" then
 		-- Rebuild an item link without noise
 		id = strjoin(':', 'item', id, enchant, gem1, gem2, gem3, gem4, suffix, "0", "0", reforge)

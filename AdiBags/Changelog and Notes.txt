@@ -1,0 +1,11 @@
+Changelog by Sattva 4th April 2023 #1;
+Addon is backported and ready to release.
+
+
+
+	What i couldn't test:
+
+
+
+	TODO List:
+

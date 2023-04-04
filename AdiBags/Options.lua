@@ -579,6 +579,7 @@ function addon:InitializeOptions()
 
 	AceConfig:RegisterOptionsTable(addonName, function() return self:GetOptions() end)
 
+	LibStub('AceConsole-3.0'):RegisterChatCommand("ab", addon.OpenOptions, true)
 	LibStub('AceConsole-3.0'):RegisterChatCommand("adibags", addon.OpenOptions, true)
 end
 
