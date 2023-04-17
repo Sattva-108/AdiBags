@@ -94,7 +94,12 @@ function anchorProto:SaveSettings()
 	db.point, db.xOffset, db.yOffset = self:GetPosition()
 end
 
-function anchorProto:StartMoving()
+function anchorProto:StartMoving(button)
+	if button == "RightButton" then
+		addon:ToggleAnchor()
+		return
+	end
+	
 	if self.moving then return end
 	self.moving = true
 	local target = self.target
@@ -113,7 +118,12 @@ function anchorProto:StartMoving()
 	end
 end
 
-function anchorProto:StopMoving()
+function anchorProto:StopMoving(button)
+	if button == "RightButton" then
+		addon:ToggleAnchor()
+		return
+	end
+	
 	if not self.moving then return end
 	self.moving = nil
 	local target = self.target

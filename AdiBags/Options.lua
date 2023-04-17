@@ -254,7 +254,7 @@ function addon:GetOptions()
 		name = addonName..' DEV',
 		--@end-debug@]===]
 		--@non-debug@
-		name = addonName..' v1.4.7.1',
+		name = addonName..' v3.3.5',
 		--@end-non-debug@
 		type = 'group',
 		handler = addon:GetOptionHandler(addon),
@@ -579,11 +579,27 @@ function addon:InitializeOptions()
 
 	AceConfig:RegisterOptionsTable(addonName, function() return self:GetOptions() end)
 
-	LibStub('AceConsole-3.0'):RegisterChatCommand("ab", addon.OpenOptions, true)
-	LibStub('AceConsole-3.0'):RegisterChatCommand("adibags", addon.OpenOptions, true)
+	LibStub('AceConsole-3.0'):RegisterChatCommand("ab", function(cmd)
+		addon:OpenOptions(strsplit(' ', cmd or ""))
+	end, true)
+	LibStub('AceConsole-3.0'):RegisterChatCommand("adibags", function(cmd)
+		addon:OpenOptions(strsplit(' ', cmd or ""))
+	end, true)
 end
 
-function addon.OpenOptions()
-	AceConfigDialog:SetDefaultSize(addonName, 800, 600)
-	AceConfigDialog:Open(addonName)
+-- Open Options Function with ability to open certain tab. Usage: addon:OpenOptions("module name") or ("module name", "submodule name")
+function addon:OpenOptions(...)
+	AceConfigDialog:SetDefaultSize(addonName, 650, 540)
+	if select('#', ...) > 0 then
+		self:Debug('OpenOptions =>', select('#', ...), ...)
+		AceConfigDialog:Open(addonName)
+		AceConfigDialog:SelectGroup(addonName, ...)
+	elseif not AceConfigDialog:Close(addonName) then
+		AceConfigDialog:Open(addonName)
+	end
+end
+
+-- Close Options Function
+function addon:CloseOptions()
+	AceConfigDialog:Close(addonName)
 end

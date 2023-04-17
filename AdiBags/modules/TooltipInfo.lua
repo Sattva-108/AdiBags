@@ -29,9 +29,9 @@ mod.uiDesc = L['Add more information in tooltips related to items in your bags.'
 
 function mod:OnInitialize()
 	self.db = addon.db:RegisterNamespace(self.name, {profile={
-		item = 'any',
-		container = 'any',
-		filter = 'any',
+		item = 'ctrl',
+		container = 'ctrl',
+		filter = 'ctrl',
 	}})
 end
 

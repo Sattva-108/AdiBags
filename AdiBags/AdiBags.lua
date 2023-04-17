@@ -141,8 +141,8 @@ local DEFAULT_SETTINGS = {
 		},
 		positionMode = "anchored",
 		positions = {
-			anchor = { point = "BOTTOMRIGHT", xOffset = -32, yOffset = 200 },
-			Backpack = { point = "BOTTOMRIGHT", xOffset = -32, yOffset = 200 },
+			anchor = { point = "BOTTOMRIGHT", xOffset = -111, yOffset = 220 },
+			Backpack = { point = "BOTTOMRIGHT", xOffset = -111, yOffset = 220 },
 			Bank = { point = "TOPLEFT", xOffset = 32, yOffset = -104 },
 		},
 		scale = 0.8,
@@ -633,6 +633,7 @@ function bagProto:Close()
 	if self.frame and self.frame:IsShown() then
 		self:Debug('Close')
 		self.frame:Hide()
+		CloseMenus()
 		addon:SendMessage('AdiBags_BagClosed', self.bagName, self)
 		if self.PostClose then
 			self:PostClose()
@@ -977,6 +978,9 @@ local filterProto = {
 	isFilter = true,
 	priority = 0,
 	Debug = addon.Debug,
+	OpenOptions = function(self)
+		return addon:OpenOptions("filters", self.filterName)
+	end,
 }
 addon.filterProto = filterProto
 
@@ -1103,3 +1107,4 @@ function addon:Filter(slotData, defaultSection, defaultCategory)
 	end
 	return defaultSection, defaultCategory
 end
+

@@ -49,7 +49,7 @@ local bagMeta = { __index = bagProto }
 function mod:OnInitialize()
 	self.db = addon.db:RegisterNamespace(self.moduleName, {
 		profile = {
-			autoTidy = false,
+			autoTidy = true,
 		},
 	})
 end

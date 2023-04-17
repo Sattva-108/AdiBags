@@ -50,6 +50,24 @@ local ITEM_SPACING = addon.ITEM_SPACING
 local SECTION_SPACING = addon.SECTION_SPACING
 local BAG_INSET = addon.BAG_INSET
 
+
+
+local EasyMenu = EasyMenu
+local CreateFrame = CreateFrame
+local ToggleDropDownMenu = ToggleDropDownMenu
+
+
+local menuFrame = CreateFrame("Frame", "menuFrame", UIParent, "UIDropDownMenuTemplate")
+local menuList = {
+{text = "|TInterface\\Buttons\\UI-Panel-MinimizeButton-Up:24|t |cffFFA500Close|r", func = function() CloseMenus() end, 
+	fontObject = GameFontNormalLarge},
+
+	{text = "  ", notClickable = true},
+	{text = "  |TInterface\\Icons\\INV_Misc_Spyglass_03:20|t    "..L["Unlock Anchor"], func = function() addon:ToggleAnchor() end},
+    {text = "  |TInterface\\Icons\\INV_TradeskillItem_03:20|t    "..L["Manual Filtering"], func = function() addon:OpenOptions("filters", "FilterOverride") end},
+    {text = "  |TInterface\\Icons\\INV_Misc_Gear_01:20|t    "..L["Settings"], func = function() addon:OpenOptions() end},
+}
+
 --------------------------------------------------------------------------------
 -- Widget scripts
 --------------------------------------------------------------------------------
@@ -57,8 +75,10 @@ local BAG_INSET = addon.BAG_INSET
 local function BagSlotButton_OnClick(button)
 	if button:GetChecked() then
 		button.panel:Show()
+		CloseMenus()
 	else
 		button.panel:Hide()
+		CloseMenus()
 	end
 end
 
@@ -185,6 +205,89 @@ function containerProto:OnCreate(name, bagIds, isBank)
 	title:SetPoint("LEFT", headerLeftRegion, "RIGHT", 4, 0)
 	title:SetPoint("RIGHT", headerRightRegion, "LEFT", -4, 0)
 
+
+	-- create the frame
+	local AdiBagsBagMenu = CreateFrame("Frame", "AdiBagsBagMenu", self)
+	AdiBagsBagMenu:SetHeight(18)
+	AdiBagsBagMenu:SetPoint("LEFT", headerLeftRegion, "RIGHT", 4, 0)
+	AdiBagsBagMenu:SetPoint("RIGHT", headerRightRegion, "LEFT", -20, 0)
+
+	-- create the texture for the background
+	local background = AdiBagsBagMenu:CreateTexture(nil, "BACKGROUND")
+	background:SetAllPoints()
+	background:SetTexture(0, 1, 0, 0) -- green background with 60% opacity
+
+	-- set the size of the background texture to match the size of the clickable frame
+	background:SetSize(AdiBagsBagMenu:GetSize())
+
+	-- create the texture for the border
+	local border = AdiBagsBagMenu:CreateTexture(nil, "BORDER")
+	border:SetAllPoints()
+	border:SetTexture(0.4, 0.4, 0.4, 0) -- gray border
+
+	-- set the frame strata to be higher than the title text's strata
+	AdiBagsBagMenu:SetFrameStrata("DIALOG")
+	AdiBagsBagMenu:SetFrameLevel(100)
+
+	-- add function to hide tooltip
+	local function HideTooltip()
+	  GameTooltip:Hide()
+	end
+
+	-- set the frame to be clickable
+	AdiBagsBagMenu:SetScript("OnMouseUp", function(self, button)
+	  local position = self:GetPoint()
+	  HideTooltip() -- Call the hide tooltip function here
+		if button == "RightButton" then -- check if right button was clicked
+		addon:OpenOptions()
+		CloseMenus()
+		elseif button == "LeftButton" then -- check if left button was clicked
+
+		-- create a menu and adjust its position if dropdown is too close to top edge of screen.  
+		local x, y = GetCursorPosition()
+		local screenHeight = UIParent:GetTop()
+		local threshold = 200 -- adjust this value to change the distance from the top edge
+			if y > screenHeight - threshold then -- if the cursor is within the threshold distance f
+			  EasyMenu(menuList, menuFrame, "AdiBagsBagMenu", 0, 0, "MENU", 2)
+			else
+			  EasyMenu(menuList, menuFrame, "AdiBagsBagMenu", -23, 130, "MENU", 2) -- default position
+			end
+		end
+	end)
+
+
+	-- attempt to hide dropdown on second left click. (didn't really work :3)
+	-- add new OnMouseUp function to menuFrame to hide the menu
+	menuFrame:SetScript("OnMouseUp", function(self, button)
+	  CloseMenus()
+	end)
+
+	-- add new OnMouseDown function to AdiBagsBagMenu to hide the menu when clicked again
+	AdiBagsBagMenu:SetScript("OnMouseDown", function(self, button)
+	  CloseMenus()
+	end)
+
+	AdiBagsBagMenu:SetScript("OnEnter", function()
+	  background:SetTexture(0, 1, 0, 0.5)
+	  GameTooltip:SetOwner(AdiBagsBagMenu, "ANCHOR_TOPLEFT", -25, 8)
+	  GameTooltip:SetText("Bag Menu")
+	  GameTooltip:AddLine(" ")
+	  GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to open extra menu.|r")
+	  GameTooltip:AddLine("|cffeda55fRight-Click|r |cff99ff00to open AdiBags configuration.|r")
+	  GameTooltip:SetBackdropColor(0, 0, 0, 1) -- Change the alpha value here
+	  GameTooltip:Show()
+	end)
+	 
+	AdiBagsBagMenu:SetScript("OnLeave", function()
+	  background:SetTexture(0, 1, 0, 0)
+	  GameTooltip:Hide()
+	end)
+
+	AdiBagsBagMenu:EnableMouse(true)
+
+
+
+	-- creating anchor for bag moving
 	local anchor = addon:CreateAnchorWidget(self, name, L[name], self)
 	anchor:SetAllPoints(title)
 	anchor:EnableMouse(true)
