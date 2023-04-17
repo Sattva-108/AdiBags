@@ -11,8 +11,8 @@
 ## Download & Installation
 
 1. If you already have `AdiBags` from another Author, in your `Interface/Addons` folder, i highly suggest you DELETE it. To avoid bugs.
-2. [Download](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/archive/refs/heads/main.zip) zip via green `"Code"` button on top. 
-3. Copy the `"Adibags` folder within the "AdiBags-WoTLK-3.3.5-main" folder inside the .zip to `"\Interface\AddOns\"`.    
+2. [Download](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/archive/refs/heads/main.zip) zip via green `Code` button on top. 
+3. Copy the `Adibags` folder within the "AdiBags-WoTLK-3.3.5-main" folder inside the .zip to `"\Interface\AddOns\"`.    
 4. Replace/overwrite any existing files when copying.
 
 
@@ -26,12 +26,16 @@
 ## What's new with backport?
 1. Bag replacing module. There was none on 3.3.5. 
 
-![wow_Ta4pSrLErX](https://user-images.githubusercontent.com/74269253/229912932-1d216b71-45c8-42a0-ba29-4cdcbced3d1b.png)
+![bag-swap](https://user-images.githubusercontent.com/74269253/232442352-2b880015-76b5-4a9d-bd58-6f0ec7e89341.gif)
 
-2. Bag categories are less jumpy.
-3. Fixed the database bug, mentioned by addon Author in his README file, that was causing ALL Items to be tagged as `new` for some users. 
-4. And some minor bug fixes.
-5. There is still much to do, hope you stay with me and enjoy addon!
+2. Bag Menu to access different functions in more easy and faster way.
+
+![bagmenu](https://user-images.githubusercontent.com/74269253/232443341-a44f1085-fd58-4ddf-af01-1901c7277269.gif)
+
+3. Bag categories are less jumpy.
+4. Fixed the database bug, mentioned by addon Author in his README file, that was causing ALL Items to be tagged as `new` for some users. 
+5. And some minor bug fixes.
+6. There is still much to do, hope you stay with me and enjoy addon!
 
 ## List of modules and screenshots.
 Will be posted later on.
