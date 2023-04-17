@@ -14,6 +14,7 @@
 
 #@no-lib-strip@
 libs\LibStub\LibStub.lua
+libs\LibCompat-1.0\lib.xml
 libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 libs\AceAddon-3.0\AceAddon-3.0.xml
 libs\AceDB-3.0\AceDB-3.0.xml
@@ -26,6 +27,7 @@ libs\AceGUI-3.0\AceGUI-3.0.xml
 libs\AceConsole-3.0\AceConsole-3.0.xml
 libs\AceConfig-3.0\AceConfig-3.0.xml
 libs\LibBabble-Inventory-3.0\lib.xml
+libs\LibItemUpgradeInfo-1.0\LibItemUpgradeInfo-1.0.xml
 #@end-no-lib-strip@
 
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
@@ -53,6 +55,7 @@ modules\FilterOverride.lua
 modules\Junk.lua
 modules\TooltipInfo.lua
 modules\SectionVisibilityDropdown.lua
+modules\ItemLevel.lua
 
 DefaultFilters.lua
 

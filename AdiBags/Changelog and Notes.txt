@@ -1,3 +1,6 @@
+Changelog by Sattva 17th April 2023 #3;
+- Added item level plugin.
+
 Changelog by Sattva 15th April 2023 #2;
 - Added, green, shown on-mouseover menu frame to the left of "search bag" box.
 - Added right-click option to the bag menu that will show AdiBags configuration panel. (just like /ab chat command)
