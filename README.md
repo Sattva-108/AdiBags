@@ -32,13 +32,14 @@
 
 ![bagmenu](https://user-images.githubusercontent.com/74269253/232443341-a44f1085-fd58-4ddf-af01-1901c7277269.gif)
 
-3. Item level display.
-4. Bag categories are less jumpy.
-5. Fixed the database bug, mentioned by addon Author in his README file, that was causing ALL Items to be tagged as `new` for some users. 
-6. And some minor bug fixes.
-7. There is still much to do, hope you stay with me and enjoy addon!
+3. Working on interesting extra-modules for AdiBags, you can download them here - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
+4. Item level display.
+5. Bag categories are less jumpy.
+6. Fixed the database bug, mentioned by addon Author in his README file, that was causing ALL Items to be tagged as `new` for some users. 
+7. And some minor bug fixes.
+8. There is still much to do, hope you stay with me and enjoy addon!
 
 ## List of modules and screenshots.
-Will be posted later on.
+Interesting extra-modules for AdiBags, you can download them here - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
 
 #### `Changelog`, `To Do List` and `known bugs` can be viewed in [Changelog and Notes.txt](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/blob/main/AdiBags/Changelog%20and%20Notes.txt) inside addon folder.
