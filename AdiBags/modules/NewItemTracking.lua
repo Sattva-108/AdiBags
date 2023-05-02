@@ -101,6 +101,8 @@ end
 local function ResetButton_OnClick(button)
 	PlaySound("igMainMenuOptionCheckBoxOn")
 	mod:Reset(button.bagName)
+	mod:SendMessage('AdiBags_NewItemReset')
+
 end
 
 function mod:OnBagFrameCreated(bag)

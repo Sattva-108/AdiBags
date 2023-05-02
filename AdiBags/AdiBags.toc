@@ -33,6 +33,7 @@ libs\LibItemUpgradeInfo-1.0\LibItemUpgradeInfo-1.0.xml
 libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 
 Localization.lua
+EventHandlers.lua
 Utility.lua
 AdiBags.lua
 Options.lua

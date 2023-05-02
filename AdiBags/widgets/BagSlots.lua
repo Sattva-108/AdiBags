@@ -393,6 +393,7 @@ end
 local function Panel_OnHide(self)
 	PlaySound(self.closeSound)
 	addon:SendMessage('AdiBags_FiltersChanged', true)
+	addon:SendMessage('AdiBags_BagSwapPanelClosed', true)
 end
 
 --------------------------------------------------------------------------------

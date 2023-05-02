@@ -49,7 +49,7 @@ local bagMeta = { __index = bagProto }
 function mod:OnInitialize()
 	self.db = addon.db:RegisterNamespace(self.moduleName, {
 		profile = {
-			autoTidy = true,
+			autoTidy = false,
 		},
 	})
 end
@@ -168,7 +168,9 @@ end
 
 local function TidyButton_OnClick(button)
 	PlaySound("igMainMenuOptionCheckBoxOn")
+		addon:SendMessage('AdiBags_TidyBagsButtonClick')
 	return button.bag:Tidy()
+
 end
 
 local function TidyButton_OnShow(button)
@@ -274,6 +276,7 @@ function bagProto:ProcessInternal()
 	self.running = nil
 	self:UpdateButton("ProcessInternal")
 	self:Debug("Done")
+	addon:SendMessage('AdiBags_TidyBags')
 end
 
 function bagProto:Process()

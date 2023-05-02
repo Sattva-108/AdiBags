@@ -1,3 +1,7 @@
+Changelog by Sattva 2nd May 2023 #4;
+- Disabled TidyBags auto-set by default.
+- Added support for external plugins such as my new backports from retail: Adibags-Bound and Adibags-ItemOverlayPlus. 
+
 Changelog by Sattva 17th April 2023 #3;
 - Added item level plugin.
 
