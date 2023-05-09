@@ -1,3 +1,11 @@
+Changelog by Sattva 9th May 2023 #5;
+- Fix for https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/issues/2 not being able to move the bag in Manual anchor mode.
+- Added Alt+Left click on Bag Menu to toggle anchoring modes (Anchored <-> Manual)
+- Added Reset Position of bag to the Bag menu dropdown list.
+- Added Toggle anchor to the Anchored mode. Shift-Click on bag menu.
+- Added option "Bag Menu clicks in manual mode" in main config (/ab) for Manual mode to swap clicks.
+	Default is: Left-Click opens menu, Shift click - moves bag. And Swap option does the opposite!
+
 Changelog by Sattva 2nd May 2023 #4;
 - Disabled TidyBags auto-set by default.
 - Added support for external plugins such as my new backports from retail: Adibags-Bound and Adibags-ItemOverlayPlus. 
@@ -23,3 +31,4 @@ Add currencies module (badges,honor & arena points and other)
 Need to make dropping an item into bag menu "Manual Filtering" section automatically add item to the field of "item", so you dont have to paste it there.
 Need to make manual filtering by dropping item without pressing enter or at least show the "okay" button after item was dropped.
 Update new item highlight border to modern style.
+Add Reset positions of anchor to menu frame.

@@ -319,7 +319,7 @@ function addon:GetOptions()
 						desc = L['Adjust the maximum number of items per row.'],
 						type = 'group',
 						inline = true,
-						order = 145,
+						order = 146,
 						args = {
 							Backpack = {
 								name = L['Backpack'],
@@ -349,6 +349,18 @@ function addon:GetOptions()
 						max = 0.90,
 						step = 0.01,
 					},
+					clickMode = {
+						name = "Bag Menu clicks in manual mode",
+						desc = "Select Swap option if you want:\nLeft-Click to move the bag &\nShift-Click to open the bag menu.",
+						type = 'select',
+						-- width = "half",
+						order = 145,
+						values = {
+							[0] = "Default",
+							[1] = "Swap",
+						},
+							disabled = function(info) return (info.handler and info.handler:IsDisabled(info)) or addon.db.profile.positionMode == 'anchored' end,
+					},					
 					laxOrdering = {
 						name = L['Layout priority'],
 						type = 'select',

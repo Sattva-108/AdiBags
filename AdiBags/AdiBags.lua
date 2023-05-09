@@ -35,7 +35,7 @@ local UIParent = _G.UIParent
 local wipe = _G.wipe
 --GLOBALS>
 
-LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0', 'AceBucket-3.0', 'AceHook-3.0')
+LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0', 'AceBucket-3.0', 'AceHook-3.0', 'LibCompat-1.0')
 --[===[@debug@
 _G[addonName] = addon
 --@end-debug@]===]
@@ -148,6 +148,7 @@ local DEFAULT_SETTINGS = {
 		scale = 0.8,
 		rowWidth = { ['*'] = 9 },
 		maxHeight = 0.60,
+		clickMode = 0,
 		laxOrdering = 1,
 		qualityHighlight = true,
 		qualityOpacity = 1.0,
@@ -186,6 +187,7 @@ function addon:OnInitialize()
 	self.db.RegisterCallback(self, "OnProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileCopied", "OnProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileReset", "Reconfigure")
+		-- self.db.RegisterCallback(self, "OnLayoutBagsChanged", "LayoutBags")
 
 	self.itemParentFrames = {}
 
@@ -566,6 +568,7 @@ do
 				self:SendMessage('AdiBags_FiltersChanged', 0)
 			end
 			self:SendMessage('AdiBags_InteractingWindowChanged', new, old)
+			self:SendMessage('AdiBags_TimeToCheckAnchorMode')
 		end
 	end
 
@@ -910,6 +913,9 @@ local function ManualBagLayout(self)
 	end
 end
 
+
+--===== Sets position of either anchored or manual layout =====--
+
 function addon:LayoutBags()
 	local scale = self.db.profile.scale
 	for index, bag in self:IterateBags() do
@@ -919,10 +925,76 @@ function addon:LayoutBags()
 	end
 	if self.db.profile.positionMode == 'anchored' then
 		AnchoredBagLayout(self)
+		-- print("anchored layout")
+		self:SendMessage('AdiBags_AnchoredLayout')
 	else
 		ManualBagLayout(self)
+		-- print("manual layout")
+		self:SendMessage('AdiBags_ManualLayout')
 	end
 end
+
+
+
+--===== Toggles current position mode to the opposite one.  =====--
+--===== Made for bag menus Alt+LeftClick in ContainerFrame.lua =====--
+
+function addon:ToggleCurrentLayout()
+
+	if self.db.profile.positionMode == 'anchored' then
+
+		--===== Set position of current layout =====--
+		ManualBagLayout(self)
+
+		--===== Change DB setting to opposite layout =====--
+		self.db.profile.positionMode = 'manual'
+
+		--===== Add Message to error frame about chaning anchoring mode. =====--
+		UIErrorsFrame:AddMessage("\124cFFFFA500Manual\124r \124cff00bfffmode.\124r", 1.0, 0.0, 0.0, 53, 1);
+
+
+		-- First call with a duration of 0.5 seconds to remove delay of AdiBags message.
+		UIErrorsFrame:SetTimeVisible(0.5)
+
+		-- After 0.6 second, change to default UI ErrorsFrame timing.
+		LibCompat.After(0.6, function() 
+			UIErrorsFrame:SetTimeVisible(3)
+		end)
+
+		--===== Close Bag Menu =====--
+		CloseMenus()
+
+		--===== Send message to Container.lua menu frames =====--
+		self:SendMessage('AdiBags_ManualLayout')
+
+		-- print("Anchored layout")
+
+	elseif self.db.profile.positionMode == 'manual' then
+
+		UIErrorsFrame:AddMessage("\124cFF00FF00Anchored\124r\124cff00bfff mode.\124r", 1.0, 0.0, 0.0, 53, 1);
+
+
+		UIErrorsFrame:SetTimeVisible(0.5)
+
+
+		LibCompat.After(0.6, function() 
+			UIErrorsFrame:SetTimeVisible(5)
+		end)
+
+		AnchoredBagLayout(self)
+
+		self.db.profile.positionMode = 'anchored'
+
+		CloseMenus()
+
+		self:SendMessage('AdiBags_AnchoredLayout')
+
+		-- print("manual layout")
+	end
+end
+
+
+--===== Toggles Anchor for the anchored position mode =====--
 
 function addon:ToggleAnchor()
 	if self.db.profile.positionMode == 'anchored' and not self.anchor:IsShown() then
@@ -931,6 +1003,9 @@ function addon:ToggleAnchor()
 		self.anchor:Hide()
 	end
 end
+
+
+--=====  =====--
 
 function addon:UpdatePositionMode()
 	if self.db.profile.positionMode == 'anchored' then
