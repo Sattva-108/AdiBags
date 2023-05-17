@@ -35,6 +35,8 @@ local UIParent = _G.UIParent
 local wipe = _G.wipe
 --GLOBALS>
 
+LibCompat = LibStub:GetLibrary("LibCompat-1.0")
+
 LibStub('AceAddon-3.0'):NewAddon(addon, addonName, 'AceEvent-3.0', 'AceBucket-3.0', 'AceHook-3.0', 'LibCompat-1.0')
 --[===[@debug@
 _G[addonName] = addon
