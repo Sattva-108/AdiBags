@@ -416,7 +416,7 @@ function addon:GetOptions()
 							texture = {
 								name = 'Texture',
 								type = 'select',
-								dialogControl = 'LSM30_Background',
+								dialogControl = 'AdiBags_LSM30_Background',
 								values = AceGUIWidgetLSMlists.background,
 								order = 10,
 								arg = { "skin", "background" },
@@ -433,7 +433,7 @@ function addon:GetOptions()
 							border = {
 								name = 'Border',
 								type = 'select',
-								dialogControl = 'LSM30_Border',
+								dialogControl = 'AdiBags_LSM30_Border',
 								values = AceGUIWidgetLSMlists.border,
 								order = 30,
 								arg = { "skin", "border" },
