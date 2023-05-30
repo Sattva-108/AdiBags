@@ -128,12 +128,15 @@ addon.SECTION_SPACING = addon.ITEM_SIZE / 3 + addon.ITEM_SPACING
 addon.BAG_INSET = 8
 addon.TOP_PADDING = 32
 
-addon.BACKDROP = {
+local BACKDROP = {
 	bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
 	edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
-	tile = true, tileSize = 16, edgeSize = 16,
+	tile = false,
+	edgeSize = 16,
 	insets = { left = 3, right = 3, top = 3, bottom = 3 },
 }
+
+local LSM = LibStub('LibSharedMedia-3.0')
 
 local DEFAULT_SETTINGS = {
 	profile = {
@@ -169,6 +172,14 @@ local DEFAULT_SETTINGS = {
 			['*'] = false,
 			freeSpace = true,
 			notWhenTrading = 1,
+		},
+				skin = {
+			font = LSM.DefaultMedia.font,
+			fontSize = 16,
+			background = "Blizzard Tooltip",
+			border = "Blizzard Tooltip",
+			borderWidth = 16,
+			insets = 3,
 		},
 	},
 	char = {
@@ -352,6 +363,24 @@ local function DebugTable(t, prevKey)
 	end
 end
 --@end-debug@]===]
+
+function addon:GetContainerSkin(containerName)
+	local profile = self.db.profile
+	local skin = profile.skin
+	local r, g, b, a = unpack(profile.backgroundColors[containerName], 1, 4)
+	BACKDROP.bgFile = LSM:Fetch(LSM.MediaType.BACKGROUND, skin.background)
+	BACKDROP.edgeFile = LSM:Fetch(LSM.MediaType.BORDER, skin.border)
+	BACKDROP.edgeSize = skin.borderWidth
+	BACKDROP.insets.left = skin.insets
+	BACKDROP.insets.right = skin.insets
+	BACKDROP.insets.top = skin.insets
+	BACKDROP.insets.bottom = skin.insets
+	return BACKDROP, r, g, b, a
+end
+
+function addon:GetFont()
+	return LSM:Fetch(LSM.MediaType.FONT, self.db.profile.skin.font), self.db.profile.skin.fontSize
+end
 
 function addon:ConfigChanged(vars)
 	--[===[@debug@
