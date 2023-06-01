@@ -593,6 +593,8 @@ bagFont = addon:CreateFontOptions(addon.bagFont, "Bag title", 10),
 		},
 		plugins = {}
 	}
+	options.args.skin.args.bagFont.args.size.step = 1
+	options.args.skin.args.sectionFont.args.size.step = 1
 	addon.OnModuleCreated = OnModuleCreated
 	for name, module in addon:IterateModules() do
 		addon:OnModuleCreated(module)
