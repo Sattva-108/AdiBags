@@ -164,22 +164,20 @@ local DEFAULT_SETTINGS = {
 		filterPriorities = {},
 		sortingOrder = 'default',
 		modules = { ['*'] = true },
-		backgroundColors = {
-			Backpack = { 0, 0, 0, 1 },
-			Bank = { 0, 0, 0.5, 1 },
-		},
 		virtualStacks = {
 			['*'] = false,
 			freeSpace = true,
 			notWhenTrading = 1,
 		},
-				skin = {
+		skin = {
 			font = LSM.DefaultMedia.font,
 			fontSize = 16,
 			background = "Blizzard Tooltip",
 			border = "Blizzard Tooltip",
 			borderWidth = 16,
 			insets = 3,
+			BackpackColor = { 0, 0, 0, 1 },
+			BankColor = { 0, 0, 0.5, 1 },			
 		},
 	},
 	char = {
@@ -330,6 +328,13 @@ function addon:UpgradeProfile()
 		local rowWidth = profile.rowWidth
 		profile.rowWidth = { Bank = rowWidth, Backpack = rowWidth }
 	end
+
+	-- Convert old "backgroundColors"
+	if type(profile.backgroundColors) == "table" then
+		profile.skin.BackpackColor = profile.backgroundColors.Backpack
+		profile.skin.BankColor = profile.backgroundColors.Bank
+		profile.backgroundColors = nil
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -365,9 +370,8 @@ end
 --@end-debug@]===]
 
 function addon:GetContainerSkin(containerName)
-	local profile = self.db.profile
-	local skin = profile.skin
-	local r, g, b, a = unpack(profile.backgroundColors[containerName], 1, 4)
+	local skin = self.db.profile.skin
+	local r, g, b, a = unpack(skin[containerName..'Color'], 1, 4)
 	BACKDROP.bgFile = LSM:Fetch(LSM.MediaType.BACKGROUND, skin.background)
 	BACKDROP.edgeFile = LSM:Fetch(LSM.MediaType.BORDER, skin.border)
 	BACKDROP.edgeSize = skin.borderWidth
