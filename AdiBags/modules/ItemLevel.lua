@@ -1,7 +1,22 @@
 --[[
 AdiBags - Adirelle's bag addon.
-Copyright 2013 Adirelle (adirelle@gmail.com)
+Copyright 2013-2014 Adirelle (adirelle@gmail.com)
 All rights reserved.
+
+This file is part of AdiBags.
+
+AdiBags is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+AdiBags is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with AdiBags.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 local addonName, addon = ...
@@ -26,7 +41,7 @@ mod.uiName = L['Item level']
 mod.uiDesc = L['Display the level of equippable item in the top left corner of the button.']
 
 local colorSchemes = {
-	none = function() return 1, 1 ,1 end
+	none = function() return mod.db.profile.text.r, mod.db.profile.text.g, mod.db.profile.text.b end
 }
 
 local texts = {}
@@ -40,17 +55,37 @@ else
 	function SyLevelBypass() return false end
 end
 
+local function UpdateFont()
+	local fontName, fontSize = mod.font:GetFont()
+	mod.font:SetFont(fontName, fontSize, "OUTLINE")
+	if mod.db.profile.colorScheme == "none" then
+		for button, text in pairs(texts) do
+			text:SetTextColor(colorSchemes[mod.db.profile.colorScheme]())
+		end
+	end
+end
+
 function mod:OnInitialize()
 	self.db = addon.db:RegisterNamespace(self.moduleName, {
 		profile = {
 			useSyLevel = false,
 			equippableOnly = true,
-			colorScheme = 'original',
+			colorScheme = 'level',
 			minLevel = 1,
 			ignoreJunk = true,
 			ignoreHeirloom = true,
+			anchor = 'BOTTOMLEFT',
+			offsetX = 2,
+			offsetY = 1,
+			text = addon:GetFontDefaults(NumberFontNormalLarge),
 		},
 	})
+	self.font = addon:CreateFont(
+		self.name..'Font',
+		NumberFontNormalLarge,
+		function() return self.db.profile.text end
+	)
+	self.font.SettingHook = UpdateFont
 	if self.db.profile.colored == true then
 		self.db.profile.colorScheme = 'original'
 		self.db.profile.colored = nil
@@ -66,12 +101,30 @@ function mod:OnInitialize()
 			function() self:SendMessage('AdiBags_UpdateAllButtons') end,
 			'AdiBags'
 		)
+		SyLevel:RegisterFilterOnPipe('Adibags', 'Item level text')
+		SyLevelDB.EnabledFilters['Item level text']['Adibags'] = true
+	end
+end
+
+local function UpdateTextLocation()
+	local anchor = mod.db.profile.anchor or mod.db.defaults.profile.anchor
+	local offsetX = mod.db.profile.offsetX or mod.db.defaults.profile.offsetX
+	local offsetY = mod.db.profile.offsetY or mod.db.defaults.profile.offsetY
+	for button, text in pairs(texts) do
+		text:ClearAllPoints()
+		text:SetPoint(anchor, button, offsetX, offsetY)
 	end
 end
 
 function mod:OnEnable()
 	self:RegisterMessage('AdiBags_UpdateButton', 'UpdateButton')
+	if SyLevel and self.db.profile.useSyLevel and not SyLevel:IsPipeEnabled('Adibags') then
+		SyLevel:EnablePipe('Adibags')
+	end
 	self:SendMessage('AdiBags_UpdateAllButtons')
+	self.font:ApplySettings()
+	UpdateFont()
+	UpdateTextLocation()
 end
 
 function mod:OnDisable()
@@ -82,7 +135,11 @@ end
 
 local function CreateText(button)
 	local text = button:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
-	text:SetPoint("TOPLEFT", button, 3, -1)
+	local anchor = mod.db.profile.anchor or mod.db.defaults.profile.anchor
+	local offsetX = mod.db.profile.offsetX or mod.db.defaults.profile.offsetX
+	local offsetY = mod.db.profile.offsetY or mod.db.defaults.profile.offsetY
+	text:SetPoint(anchor, button, offsetX, offsetY)
+	text:SetFontObject(mod.font)
 	text:Hide()
 	texts[button] = text
 	return text
@@ -95,11 +152,11 @@ function mod:UpdateButton(event, button)
 
 	if link then
 		local _, _, quality, _, reqLevel, _, _, _, loc = GetItemInfo(link)
-		local level = ItemUpgradeInfo:GetUpgradedItemLevel(link) or 0 -- Ugly workaround
-		if level >= settings.minLevel
-			and (quality > 0 or not settings.ignoreJunk)
-			and (loc ~= "" or not settings.equippableOnly)
-			and (quality ~= 7 or not settings.ignoreHeirloom)
+local level = ItemUpgradeInfo:GetUpgradedItemLevel(link) or 0 -- Ugly workaround
+if level >= settings.minLevel
+and (quality > 0 or not settings.ignoreJunk)
+and (loc ~= "" or not settings.equippableOnly)
+and (quality ~= 7 or not settings.ignoreHeirloom)
 		then
 			if SyLevel then
 				if settings.useSyLevel then
@@ -130,7 +187,8 @@ end
 
 
 function mod:GetOptions()
-	return {
+	local options =
+	{
 		useSyLevel = SyLevel and {
 			name = L['Use SyLevel'],
 			desc = L['Let SyLevel handle the the display.'],
@@ -147,9 +205,9 @@ function mod:GetOptions()
 			name = L['Color scheme'],
 			desc = L['Which color scheme should be used to display the item level ?'],
 			type = 'select',
-			disabled = SyLevelBypass,
+			hidden = SyLevelBypass,
 			values = {
-				none     = L['None'],
+				none     = L['Manual'],
 				original = L['Same as InventoryItemLevels'],
 				level    = L['Related to player level'],
 			},
@@ -160,9 +218,9 @@ function mod:GetOptions()
 			desc = L['Do not show levels under this threshold.'],
 			type = 'range',
 			min = 1,
-			max = 600,
+			max = 1000,
 			step = 1,
-			bigStep = 5,
+			bigStep = 10,
 			order = 30,
 		},
 		ignoreJunk = {
@@ -177,22 +235,81 @@ function mod:GetOptions()
 			type = 'toggle',
 			order = 50,
 		},
-	}, addon:GetOptionHandler(self)
+		positionHeader = {
+			name = L['Text Position'],
+			type = 'header',
+			order = 70,
+		},
+		anchor = {
+			name = L['Anchor'],
+			type = 'select',
+			values = {
+				TOPLEFT = "TOPLEFT",
+				TOP = "TOP",
+				TOPRIGHT = "TOPRIGHT",
+				LEFT = "LEFT",
+				CENTER = "CENTER",
+				RIGHT = "RIGHT",
+				BOTTOMLEFT = "BOTTOMLEFT",
+				BOTTOM = "BOTTOM",
+				BOTTOMRIGHT = "BOTTOMRIGHT",
+			},
+			sorting = {
+				[1] = "TOPLEFT",
+				[2] = "TOP",
+				[3] = "TOPRIGHT",
+				[4] = "LEFT",
+				[5] = "CENTER",
+				[6] = "RIGHT",
+				[7] = "BOTTOMLEFT",
+				[8] = "BOTTOM",
+				[9] = "BOTTOMRIGHT",
+			},
+			order = 71,
+			set = function(info,value) mod.db.profile[info[#info]] = value; UpdateTextLocation() end,
+		},
+		offsetX = {
+			name = L["X Offset"],
+			desc = L["Offset in X direction (horizontal) from the given anchor point."],
+			type = 'range',
+			min = -20,
+			max = 20,
+			step = 1,
+			bigStep = 1,
+			order = 72,
+			set = function(info,value) mod.db.profile[info[#info]] = value; UpdateTextLocation() end,
+		},
+		offsetY = {
+			name = L["Y Offset"] ,
+			desc = L["Offset in Y direction (vertical) from the given anchor point."],
+			type = 'range',
+			min = -20,
+			max = 20,
+			step = 1,
+			bigStep = 1,
+			order = 73,
+			set = function(info,value) mod.db.profile[info[#info]] = value; UpdateTextLocation() end,
+		},
+		text = addon:CreateFontOptions(self.font, nil, 80),
+	}
+	options.text.args.size.step = 1
+	options.text.args.color.disabled  = function() return mod.db.profile.colorScheme ~= "none" end
+	return options, addon:GetOptionHandler(self)
 end
 
 -- Color scheme inspired from InventoryItemLevels
 do
 	local colors = {
 		-- { upper bound, r, g, b }
-		{ 150, 0.55, 0.55, 0.55 }, -- gray
-		{ 250, 1.00, 0.00, 0.00 }, -- red
-		{ 300, 1.00, 0.70, 0.00 }, -- orange
-		{ 350, 1.00, 1.00, 0.00 }, -- yellow
-		{ 372, 0.00, 1.00, 0.00 }, -- green
-		{ 385, 0.00, 1.00, 1.00 }, -- cyan
-		{ 397, 0.00, 0.80, 1.00 }, -- blue
-		{ 403, 1.00, 0.50, 1.00 }, -- purple,
-		{ 410, 1.00, 0.75, 1.00 }, -- pink
+		{  30, 0.55, 0.55, 0.55 }, -- gray
+		{  54, 1.00, 0.00, 0.00 }, -- red
+		{  72, 1.00, 0.70, 0.00 }, -- orange
+		{ 140, 1.00, 1.00, 0.00 }, -- yellow
+		{ 158, 0.00, 1.00, 0.00 }, -- green
+		{ 188, 0.00, 1.00, 1.00 }, -- cyan
+		{ 218, 0.00, 0.80, 1.00 }, -- blue
+		{ 233, 1.00, 0.50, 1.00 }, -- purple,
+		{ 273, 1.00, 0.75, 1.00 }, -- pink
 		{ 999, 1.00, 1.00, 1.00 }, -- white
 	}
 
@@ -294,11 +411,14 @@ do
 	end
 
 	local maxLevelRanges = {
-		[60] = {  66,  92 },
-		[70] = { 100, 164 },
-		[80] = { 187, 284 },
-		[85] = { 333, 416 },
-		[90] = { 458, 580 }
+			[60]  = {  66,  92 },
+			[70]  = { 100, 164 },
+			[80]  = { 187, 284 },
+			[85]  = { 333, 416 },
+			[90]  = { 450, 616 },
+			[100] = { 615, 735 },
+			[110] = { 805, 905 },
+			[120] = { 310, 350 },
 	}
 
 	local maxLevelColors = {}
