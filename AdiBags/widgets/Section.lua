@@ -10,11 +10,14 @@ local L = addon.L
 --<GLOBALS
 local _G = _G
 local ceil = _G.ceil
+local CreateFont = _G.CreateFont
+local CreateFrame = _G.CreateFrame
 local floor = _G.floor
 local format = _G.format
 local GetItemInfo = _G.GetItemInfo
 local ipairs = _G.ipairs
 local max = _G.max
+local next = _G.next
 local pairs = _G.pairs
 local setmetatable = _G.setmetatable
 local strjoin = _G.strjoin
@@ -29,8 +32,7 @@ local ITEM_SIZE = addon.ITEM_SIZE
 local ITEM_SPACING = addon.ITEM_SPACING
 local SECTION_SPACING = addon.SECTION_SPACING
 local SLOT_OFFSET = ITEM_SIZE + ITEM_SPACING
-local HEADER_SIZE = 14 + ITEM_SPACING
-addon.HEADER_SIZE = HEADER_SIZE
+local HEADER_SIZE = addon.HEADER_SIZE
 
 --------------------------------------------------------------------------------
 -- Section ordering
@@ -63,17 +65,28 @@ end
 --------------------------------------------------------------------------------
 
 local sectionClass, sectionProto = addon:NewClass("Section", "Frame", "AceEvent-3.0")
-addon:CreatePool(sectionClass, "AcquireSection")
+local sectionPool = addon:CreatePool(sectionClass, "AcquireSection")
+
+local sectionFont = CreateFont(addonName.."SectionHeaderNormalFont")
+sectionFont:SetFontObject("GameFontNormalLeft")
 
 function sectionProto:OnCreate()
 	self.buttons = {}
 	self.slots = {}
 	self.freeSlots = {}
 
-	local header = self:CreateFontString(nil, "ARTWORK", "GameFontNormalLeft")
+	local header = CreateFrame("Button", nil, self)
+	header.section = self
+	header:SetNormalFontObject(addon.sectionFont)
 	header:SetPoint("TOPLEFT", 0, 0)
 	header:SetPoint("TOPRIGHT", SECTION_SPACING - ITEM_SPACING, 0)
 	header:SetHeight(HEADER_SIZE)
+	header:EnableMouse(false)
+	header:RegisterForClicks()
+	header:SetText("DUMMY")
+	header:SetHighlightTexture([[Interface\BUTTONS\UI-Panel-Button-Highlight]], "ADD")
+	header:GetHighlightTexture():SetTexCoord(4/128, 76/128, 4/32, 18/32)	
+	header:GetFontString():SetAllPoints()	
 	self.Header = header
 	self:SendMessage('AdiBags_SectionCreated', self)
 
@@ -119,19 +132,20 @@ function sectionProto:OnAcquire(container, name, category)
 	self.dirtyLevel = 0
 	self.container = container
 	self:RegisterMessage('AdiBags_OrderChanged')
-	self:RegisterMessage('AdiBags_ConfigChanged')
-	self:UpdateFont()
+	-- self:RegisterMessage('AdiBags_ConfigChanged')
+	-- self:UpdateFont()
+	self:UpdateHeaderScripts()
 end
 
-function sectionProto:UpdateFont()
-	local font, size = addon:GetFont()
-	local header = self.Header
-	local width = header:GetStringWidth()
-	header:SetFont(font, size-4)
-	if self:IsShown() and header:GetStringWidth() ~= width then
-		self:SetDirtyLevel(2)
-	end
-end
+-- function sectionProto:UpdateFont()
+-- 	local font, size = addon:GetFont()
+-- 	local fontstring = self.Header:GetFontString()
+-- 	local width = fontstring:GetStringWidth()
+-- 	sectionFont:SetFont(font, size-4)
+-- 	if self:IsShown() and fontstring:GetStringWidth() ~= width then
+-- 		self:SetDirtyLevel(2)
+-- 	end
+-- end
 
 function sectionProto:OnRelease()
 	wipe(self.freeSlots)
@@ -142,11 +156,11 @@ function sectionProto:OnRelease()
 	self.container = nil
 end
 
-function sectionProto:AdiBags_ConfigChanged(_, name)
-	if name == 'skin.font' or name == 'skin.fontSize' then
-		return self:UpdateFont()
-	end
-end
+-- function sectionProto:AdiBags_ConfigChanged(_, name)
+-- 	if name == 'skin.font' or name == 'skin.fontSize' then
+-- 		return self:UpdateFont()
+-- 	end
+-- end
 
 function sectionProto:AdiBags_OrderChanged()
 	self:ReorderButtons()
@@ -189,6 +203,71 @@ end
 
 function sectionProto:ClearDirtyLevel()
 	self.dirtyLevel = 0
+end
+
+--------------------------------------------------------------------------------
+-- Section hooks
+--------------------------------------------------------------------------------
+
+local scriptDispatcher = LibStub('CallbackHandler-1.0'):New(addon, 'RegisterSectionHeaderScript', 'UnregisterSectionHeaderScript', 'UnregisterAllSectionHeaderScripts')
+
+local scripts = {
+	OnClick = {
+		Enable = function(self)
+			self:RegisterForClicks("AnyUp")
+		end,
+		Disable = function(self)
+			self:RegisterForClicks()
+		end,
+		Handler = function(...) return scriptDispatcher:Fire('OnClick', ...) end
+	},
+	OnEnter = {
+		Handler = function(...) return scriptDispatcher:Fire('OnEnter', ...) end
+	},
+	OnLeave = {
+		Handler = function(...) return scriptDispatcher:Fire('OnLeave', ...) end
+	},
+	OnReceiveDrag = {
+		Handler = function(...) return scriptDispatcher:Fire('OnReceiveDrag', ...) end
+	}
+}
+
+local usedScripts = {}
+
+function sectionProto:UpdateHeaderScripts()
+	local header = self.Header
+	for name, funcs in pairs(scripts) do
+		if not usedScripts[name] and header:GetScript(name) then
+			header:SetScript(name, nil)
+			if funcs.Disable then
+				funcs.Disable(header)
+			end
+		elseif usedScripts[name] and not header:GetScript(name) then
+			header:SetScript(name, funcs.Handler)
+			if funcs.Enable then
+				funcs.Enable(header)
+			end
+		end
+	end
+	header:EnableMouse(not not next(usedScripts))
+end
+
+function scriptDispatcher:OnUsed(_, script)
+	if not scripts[script] then return end
+	addon:Debug('Used SectionHeaderScript', script)
+	usedScripts[script] = true
+	for section in sectionPool:IterateActiveObjects() do
+		section:UpdateHeaderScripts()
+	end
+end
+
+function scriptDispatcher:OnUnused(_, script)
+	if scripts[script] == nil then return end
+	addon:Debug('Unused SectionHeaderScript', script)
+	usedScripts[script] = nil
+	for section in sectionPool:IterateActiveObjects() do
+		section:UpdateHeaderScripts()
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -280,6 +359,17 @@ function sectionProto:SetSizeInSlots(width, height)
 		self:SetWidth(ITEM_SIZE * width + ITEM_SPACING * max(width - 1 ,0))
 		self:SetHeight(HEADER_SIZE + ITEM_SIZE * height + ITEM_SPACING * max(height - 1, 0))
 		self:SetDirtyLevel(2)
+	end
+end
+
+function sectionProto:SetHeaderOverflow(overflow)
+	if self.headerOverflow ~= overflow then
+		self.headerOverflow = overflow
+		if overflow then
+			self.Header:SetPoint("TOPRIGHT", SECTION_SPACING, 0)
+		else
+			self.Header:SetPoint("TOPRIGHT", 0, 0)
+		end
 	end
 end
 

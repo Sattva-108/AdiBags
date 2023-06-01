@@ -49,6 +49,7 @@ local ITEM_SIZE = addon.ITEM_SIZE
 local ITEM_SPACING = addon.ITEM_SPACING
 local SECTION_SPACING = addon.SECTION_SPACING
 local BAG_INSET = addon.BAG_INSET
+local HEADER_SIZE = addon.HEADER_SIZE
 
 
 
@@ -210,10 +211,10 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		tinsert(_G.ITEM_SEARCHBAR_LIST, searchBox:GetName())
 	end
 
-	local title = self:CreateFontString(self:GetName().."Title","OVERLAY","GameFontHighlightLarge")
+	local title = self:CreateFontString(self:GetName().."Title","OVERLAY")
 	self.Title = title
+	title:SetFontObject(addon.bagFont)
 	title:SetText(L[name])
-	title:SetTextColor(1, 1, 1)
 	title:SetHeight(18)
 	title:SetJustifyH("LEFT")
 	title:SetPoint("LEFT", headerLeftRegion, "RIGHT", 4, 0)
@@ -825,8 +826,6 @@ function containerProto:UpdateSkin()
 	else
 		self:SetBackdropBorderColor(0.5+(0.5*r/m), 0.5+(0.5*g/m), 0.5+(0.5*b/m), a)
 	end
-	local font, size = addon:GetFont()
-	self.Title:SetFont(font, size)
 end
 
 --------------------------------------------------------------------------------
@@ -1144,6 +1143,7 @@ local function DoLayoutSections(self, rowWidth, maxHeight)
 	local wasted = 0
 	local contentWidth, contentHeight = 0, 0
 	local columnX, numColumns = 0, 0
+	local section
 	local num = #sections
 	while num > 0 do
 		local columnWidth, y = 0, 0
@@ -1154,14 +1154,17 @@ local function DoLayoutSections(self, rowWidth, maxHeight)
 				if not index then
 					break
 				end
-				local section = tremove(sections, index)
+				section = tremove(sections, index)
 				num = num - 1
-				--section:Show()
 				section:SetPoint("TOPLEFT", content, columnX + x, -y)
 				section:SetSizeInSlots(width, height)
+				section:SetHeaderOverflow(true)
 				x = x + section:GetWidth() + SECTION_SPACING
 				rowHeight = max(rowHeight, section:GetHeight())
 			end
+			if section then
+				section:SetHeaderOverflow(false)
+			end			
 			if x > 0 then
 				y = y + rowHeight + ITEM_SPACING
 				columnWidth = max(columnWidth, x)
@@ -1170,11 +1173,11 @@ local function DoLayoutSections(self, rowWidth, maxHeight)
 				break
 			end
 		end
+		wasted = max(wasted, contentHeight - y)
 		if y > 0 then
 			numColumns = numColumns + 1
 			columnX = columnX + columnWidth
 			contentWidth = max(contentWidth, columnX)
-			wasted = maxHeight - y
 		else
 			break
 		end
@@ -1233,7 +1236,7 @@ function containerProto:LayoutSections(cleanLevel)
 				if totalHeight / numColumns < minHeight then
 					numColumns = numColumns - 1
 				end
-				maxHeight = totalHeight / numColumns * 1.10
+				maxHeight = totalHeight / numColumns + (ITEM_SIZE + ITEM_SPACING)
 				contentWidth, contentHeight, numColumns, wastedHeight = DoLayoutSections(self, rowWidth, maxHeight)
 			elseif numColumns == 1 and contentWidth < self:GetContentMinWidth()  then
 				contentWidth, contentHeight, numColumns, wastedHeight = DoLayoutSections(self, self:GetContentMinWidth(), maxHeight)

@@ -18,6 +18,7 @@ local unpack = _G.unpack
 --GLOBALS>
 
 local AceConfigDialog = LibStub('AceConfigDialog-3.0')
+local LSM = LibStub('LibSharedMedia-3.0')
 
 local options
 
@@ -76,6 +77,9 @@ function handlerProto:Set(info, value, ...)
 	else
 		self.dbHolder:SendMessage('AdiBags_ConfigChanged', path)
 	end
+	if type(self.PostSet) == "function" then
+		self:PostSet(path, value, ...)
+	end	
 end
 
 function handlerProto:IsDisabled(info)
@@ -83,9 +87,9 @@ function handlerProto:IsDisabled(info)
 end
 
 local handlers = {}
-function addon:GetOptionHandler(dbHolder, isFilter)
+function addon:GetOptionHandler(dbHolder, isFilter, postSet)
 	if not handlers[dbHolder] then
-		handlers[dbHolder] = setmetatable({dbHolder = dbHolder, isFilter = isFilter}, handlerMeta)
+		handlers[dbHolder] = setmetatable({dbHolder = dbHolder, isFilter = isFilter, PostSet = postSet}, handlerMeta)
 		dbHolder.SendMessage = LibStub('AceEvent-3.0').SendMessage
 	end
 	return handlers[dbHolder]
@@ -249,7 +253,7 @@ function addon:GetOptions()
 			bagList[module.bagName] = L[module.bagName]
 		end
 	end
-	local LSM = LibStub('LibSharedMedia-3.0')
+
 	options = {
 		--[===[@debug@
 		name = addonName..' DEV',
@@ -380,33 +384,8 @@ function addon:GetOptions()
 				type = 'group',
 				order = 150,
 				args = {
-					texts = {
-						name = 'Texts',
-						type = 'group',
-						inline = true,
-						order = 10,
-						args = {
-							font = {
-								name = 'Font',
-								type = 'select',
-								dialogControl = 'LSM30_Font',
-								values = AceGUIWidgetLSMlists.font,
-								order = 10,
-								arg = { "skin", "font" },
-							},
-							size = {
-								name = 'Size',
-								type = 'select',
-								values = {
-									[12] = 'Small',
-									[16] = 'Medium',
-									[20] = 'Large',
-								},
-								order = 20,
-								arg = { "skin", "fontSize" },
-							},
-						},
-					},
+bagFont = addon:CreateFontOptions(addon.bagFont, "Bag title", 10),
+				sectionFont = addon:CreateFontOptions(addon.sectionFont, "Section header", 15),
 					background = {
 						name = 'Bag background',
 						type = 'group',

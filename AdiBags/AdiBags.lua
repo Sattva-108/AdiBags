@@ -127,6 +127,7 @@ addon.ITEM_SPACING = 4
 addon.SECTION_SPACING = addon.ITEM_SIZE / 3 + addon.ITEM_SPACING
 addon.BAG_INSET = 8
 addon.TOP_PADDING = 32
+addon.HEADER_SIZE = 14 + addon.ITEM_SPACING
 
 local BACKDROP = {
 	bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
@@ -169,9 +170,7 @@ local DEFAULT_SETTINGS = {
 			freeSpace = true,
 			notWhenTrading = 1,
 		},
-		skin = {
-			font = LSM.DefaultMedia.font,
-			fontSize = 16,
+		skin = {		
 			background = "Blizzard Tooltip",
 			border = "Blizzard Tooltip",
 			borderWidth = 16,
@@ -194,11 +193,19 @@ local DEFAULT_SETTINGS = {
 addon:SetDefaultModuleState(false)
 
 function addon:OnInitialize()
-	self.db = LibStub('AceDB-3.0'):New(addonName.."DB", DEFAULT_SETTINGS, true)
+	local bfd = self:GetFontDefaults(GameFontHighlightLarge)
+	bfd.r, bfd.g, bfd.b = 1, 1, 1
+	DEFAULT_SETTINGS.profile.bagFont = bfd
+	DEFAULT_SETTINGS.profile.sectionFont = self:GetFontDefaults(GameFontNormalLeft)
+
+	self.db = LibStub('AceDB-3.0'):New(addonName.."DB", DEFAULT_SETTINGS, true)	
 	self.db.RegisterCallback(self, "OnProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileCopied", "OnProfileChanged")
 	self.db.RegisterCallback(self, "OnProfileReset", "Reconfigure")
 		-- self.db.RegisterCallback(self, "OnLayoutBagsChanged", "LayoutBags")
+
+	self.bagFont = self:CreateFont(addonName.."BagFont", GameFontHighlightLarge, function() return self.db.profile.bagFont end)
+	self.sectionFont = self:CreateFont(addonName.."SectionFont", GameFontNormalLeft, function() return self.db.profile.sectionFont end)		
 
 	self.itemParentFrames = {}
 
@@ -272,6 +279,8 @@ function addon:OnEnable()
 		end
 	end
 
+	self.bagFont:ApplySettings()
+	self.sectionFont:ApplySettings()
 	self:UpdatePositionMode()
 
 	self:Debug('Enabled')
@@ -335,6 +344,32 @@ function addon:UpgradeProfile()
 		profile.skin.BankColor = profile.backgroundColors.Bank
 		profile.backgroundColors = nil
 	end
+
+	-- Convert old font settings
+	if type(profile.skin) == "table" then
+		local skin = profile.skin
+		if type(skin.font) == "string" then
+			profile.bagFont.name = skin.font
+			profile.sectionFont.name = skin.font
+			skin.font = nil
+		end
+		if skin.fontSize then
+			profile.bagFont.size = skin.fontSize
+			profile.sectionFont.size = skin.fontSize - 4
+			skin.fontSize = nil
+		end
+		if skin.fontBagColor then
+			local bagFont = profile.bagFont
+			bagFont.r, bagFont.g, bagFont.r = unpack(skin.fontBagColor)
+			skin.fontBagColor = nil
+		end
+		if skin.fontSectionColor then
+			local sectionFont = profile.sectionFont
+			sectionFont.r, sectionFont.g, sectionFont.b = unpack(skin.fontSectionColor)
+			skin.fontSectionColor = nil
+		end
+	end
+
 end
 
 --------------------------------------------------------------------------------
@@ -382,9 +417,6 @@ function addon:GetContainerSkin(containerName)
 	return BACKDROP, r, g, b, a
 end
 
-function addon:GetFont()
-	return LSM:Fetch(LSM.MediaType.FONT, self.db.profile.skin.font), self.db.profile.skin.fontSize
-end
 
 function addon:ConfigChanged(vars)
 	--[===[@debug@
@@ -416,6 +448,8 @@ function addon:ConfigChanged(vars)
 				end
 			elseif strmatch(name, 'rowWidth') then
 				return self:SendMessage('AdiBags_LayoutChanged')
+			elseif strmatch(name, '^skin%.font') then
+				return self:UpdateFonts()				
 			end
 		end
 	end
