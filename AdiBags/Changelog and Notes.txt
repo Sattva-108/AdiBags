@@ -1,3 +1,6 @@
+Changelog by Sattva 3th June 2023 #7;
+- Small Bag Layout improvements
+
 Changelog by Sattva 31th May 2023 #6;
 - Added new feature: Skins. To change font and it's size, border, background.
 
