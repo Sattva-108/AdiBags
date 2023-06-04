@@ -60,7 +60,6 @@ modules\Junk.lua
 modules\TooltipInfo.lua
 modules\SectionVisibilityDropdown.lua
 modules\ItemLevel.lua
-modules\ChangeHighlight.lua
 
 DefaultFilters.lua
 
