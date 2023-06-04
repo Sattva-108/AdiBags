@@ -10,7 +10,7 @@
 ## Author: Adirelle, backported to 3.3.5 by Sattva#7238 - discord
 ## Version: 3.3.5
 ## SavedVariables: AdiBagsDB
-## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibBabble-Inventory-3.0, AdiDebug, LibSharedMedia-3.0, Scrap, BrainDead, ProfessionsVault
+## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibBabble-Inventory-3.0, AdiDebug, LibSharedMedia-3.0, Scrap, BrainDead, ProfessionsVault, Masque
 
 #@no-lib-strip@
 libs\LibStub\LibStub.lua

@@ -1,5 +1,29 @@
+Changelog by Sattva 4th June 2023 #9;
+- Added Experimental Masque support!
+
+Changelog by Sattva 3th June 2023 #8;
+- Fixed conflict with Immersion addon. Now both works together!
+
 Changelog by Sattva 3th June 2023 #7;
-- Small Bag Layout improvements
+- Core 
+ - Small Bag Layout improvements
+ - Fix Heartstone being recognized as "Junk"
+- Skins
+ - added Reset Button
+ - font Color Option
+ - more Font Sizes
+ - Title Font changeable as well now
+- ItemLevel
+ - added Text Configuration: Font, Position, Size, Color
+- Known Bugs
+ - ElvUI conflict:
+  - If you want to change ItemLevel or Title font color need to do next:
+   - Try to change color.
+   - Disable ElvUI
+   - Go back to AdiBags font settings, click reset button.
+   - Change color to desired.
+   - Load ElvUI.
+  - From now on, you will not need to disable ElvUI to change colors.
 
 Changelog by Sattva 31th May 2023 #6;
 - Added new feature: Skins. To change font and it's size, border, background.
