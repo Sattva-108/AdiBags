@@ -38,6 +38,8 @@ local GetBagSlotFromId = addon.GetBagSlotFromId
 
 local ITEM_SIZE = addon.ITEM_SIZE
 
+local Masque = LibStub('Masque', true)
+
 --------------------------------------------------------------------------------
 -- Button initialization
 --------------------------------------------------------------------------------
@@ -236,8 +238,12 @@ function buttonProto:Update()
 		icon:SetTexture(self.texture)
 		icon:SetTexCoord(0,1,0,1)
 	else
-		icon:SetTexture([[Interface\BUTTONS\UI-EmptySlot]])
-		icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
+		if Masque then
+			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
+		else
+			icon:SetTexture([[Interface\BUTTONS\UI-EmptySlot]])
+			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
+		end
 	end
 	local tag = (not self.itemId or addon.db.profile.showBagType) and addon:GetFamilyTag(self.bagFamily)
 	if tag then
@@ -343,7 +349,6 @@ end
 -- Masque Support
 --------------------------------------------------------------------------------
 
-local Masque = LibStub('Masque', true)
 if Masque then
 	hooksecurefunc(buttonProto, "OnCreate", function(self)
 		self.masqueData = {
