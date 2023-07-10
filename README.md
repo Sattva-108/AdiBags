@@ -33,11 +33,12 @@
 <details> <summary> Click to see the What's New: </summary>
 1. Bag replacing module. There was none on 3.3.5. 
 
-![bag-swap](https://user-images.githubusercontent.com/74269253/232442352-2b880015-76b5-4a9d-bd58-6f0ec7e89341.gif)
+![previewBagSort](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/assets/74269253/425420ca-e3aa-4749-b293-fb3185ac142a)
 
 2. Bag Menu to access different functions in more easy and faster way.
 
-![bagmenu](https://user-images.githubusercontent.com/74269253/232443341-a44f1085-fd58-4ddf-af01-1901c7277269.gif)
+![previewBagMenu](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/assets/74269253/e25eca88-0074-405c-973b-ef878fe4ef66)
+
 
 3. Working on interesting extra-modules for AdiBags, you can download them here - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
 4. Item level display.
