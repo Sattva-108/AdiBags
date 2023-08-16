@@ -262,8 +262,6 @@ function buttonProto:Update()
 	addon:SendMessage('AdiBags_UpdateButton', self)
 end
 
--- test commit
-
 function buttonProto:UpdateCount()
 	local count = self:GetCount() or 0
 	self.count = count
