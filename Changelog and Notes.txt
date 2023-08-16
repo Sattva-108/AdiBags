@@ -1,0 +1,66 @@
+Changelog by Sattva 4th June 2023 #9;
+- Added Experimental Masque support!
+
+Changelog by Sattva 3th June 2023 #8;
+- Fixed conflict with Immersion addon. Now both works together!
+
+Changelog by Sattva 3th June 2023 #7;
+- Core 
+ - Small Bag Layout improvements
+ - Fix Heartstone being recognized as "Junk"
+- Skins
+ - added Reset Button
+ - font Color Option
+ - more Font Sizes
+ - Title Font changeable as well now
+- ItemLevel
+ - added Text Configuration: Font, Position, Size, Color
+- Known Bugs
+ - ElvUI conflict:
+  - If you want to change ItemLevel or Title font color need to do next:
+   - Try to change color.
+   - Disable ElvUI
+   - Go back to AdiBags font settings, click reset button.
+   - Change color to desired.
+   - Load ElvUI.
+  - From now on, you will not need to disable ElvUI to change colors.
+
+Changelog by Sattva 31th May 2023 #6;
+- Added new feature: Skins. To change font and it's size, border, background.
+
+Changelog by Sattva 9th May 2023 #5;
+- Fix for https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/issues/2 not being able to move the bag in Manual anchor mode.
+- Added Alt+Left click on Bag Menu to toggle anchoring modes (Anchored <-> Manual)
+- Added Reset Position of bag to the Bag menu dropdown list.
+- Added Toggle anchor to the Anchored mode. Shift-Click on bag menu.
+- Added option "Bag Menu clicks in manual mode" in main config (/ab) for Manual mode to swap clicks.
+	Default is: Left-Click opens menu, Shift click - moves bag. And Swap option does the opposite!
+
+Changelog by Sattva 2nd May 2023 #4;
+- Disabled TidyBags auto-set by default.
+- Added support for external plugins such as my new backports from retail: Adibags-Bound and Adibags-ItemOverlayPlus. 
+
+Changelog by Sattva 17th April 2023 #3;
+- Added item level plugin.
+
+Changelog by Sattva 15th April 2023 #2;
+- Added, green, shown on-mouseover menu frame to the left of "search bag" box.
+- Added right-click option to the bag menu that will show AdiBags configuration panel. (just like /ab chat command)
+- Added left-click option to the bag menu that will open drop-down menu with next options: Manual Filtering, Unlock Anchor.
+- Can now right-click unlocked bag anchor to stop moving the bag.
+- Adjusted default position of bag and made configuration panel smaller by default.
+- Fixed visual bugs of manual filtering sections. 
+
+Changelog by Sattva 4th April 2023 #1;
+Addon is backported and ready to release.
+
+
+
+To-Do List:
+Add Alt+Right click on header to go in manual filtering (if that header already has some configs, it should go into that config, instead of general manual filtering tab.)?	
+Add currencies module (badges,honor & arena points and other)
+Need to make dropping an item into bag menu "Manual Filtering" section automatically add item to the field of "item", so you dont have to paste it there.
+Need to make manual filtering by dropping item without pressing enter or at least show the "okay" button after item was dropped.
+Update new item highlight border to modern style.
+Add Reset positions of anchor to menu frame.
+BagSearch - Hide ItemLevel for grayed items.
