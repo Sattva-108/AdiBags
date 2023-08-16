@@ -1,0 +1,65 @@
+## Interface: 30300
+## X-GitHub-Repository: Sattva-108/AdiBags-WoTLK-3.3.5
+## X-GitHub-Project-Homepage: https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5
+## X-GitHub-Project-Licence: MIT
+## X-GitHub-Project-Issues: https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/issues
+## X-GitHub-Project-Download: https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/archive/refs/heads/main.zip
+
+## Title: AdiBags
+## Notes: Adirelle's bag addon.
+## Author: Adirelle, backported to 3.3.5 by Sattva#7238 - discord
+## Version: 3.3.5
+## SavedVariables: AdiBagsDB
+## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3, LibBabble-Inventory-3.0, AdiDebug, LibSharedMedia-3.0, Scrap, BrainDead, ProfessionsVault, Masque
+
+#@no-lib-strip@
+libs\LibStub\LibStub.lua
+libs\LibCompat-1.0\lib.xml
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceTimer-3.0\AceTimer-3.0.xml
+libs\AceHook-3.0\AceHook-3.0.xml
+libs\AceBucket-3.0\AceBucket-3.0.xml
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
+libs\LibBabble-Inventory-3.0\lib.xml
+libs\LibItemUpgradeInfo-1.0\LibItemUpgradeInfo-1.0.xml
+libs\LibSharedMedia-3.0\lib.xml
+libs\AceGUI-3.0-SharedMediaWidgets\widget.xml
+#@end-no-lib-strip@
+
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+Fonts.lua
+Localization.lua
+EventHandlers.lua
+Utility.lua
+AdiBags.lua
+Options.lua
+OO.lua
+
+widgets\LayeredRegion.lua
+widgets\ContainerFrame.lua
+widgets\BagSlots.lua
+widgets\ItemButton.lua
+widgets\Section.lua
+widgets\AnchorWidget.lua
+widgets\Config-ItemList.lua
+
+modules\DataSource.lua
+modules\SearchHighlight.lua
+modules\NewItemTracking.lua
+modules\TidyBags.lua
+modules\MoneyFrame.lua
+modules\FilterOverride.lua
+modules\Junk.lua
+modules\TooltipInfo.lua
+modules\SectionVisibilityDropdown.lua
+modules\ItemLevel.lua
+
+DefaultFilters.lua
+
