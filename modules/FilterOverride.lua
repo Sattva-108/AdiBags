@@ -280,7 +280,9 @@ do
 				categories[category] = categoryGroup
 				options[category] = categoryGroup
 			end
-			local key = gsub(section, "%W", "")
+			-- 3.3.5 problem with ruRU - Cyrillic section names. TODO FIXME
+			--local key = gsub(section, "%W", "")
+			local key = section
 			local sectionGroup = categoryGroup.args[key]
 			if not sectionGroup then
 				sectionGroup = tremove(sectionHeap)
