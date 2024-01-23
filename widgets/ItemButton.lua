@@ -39,6 +39,7 @@ local GetBagSlotFromId = addon.GetBagSlotFromId
 local ITEM_SIZE = addon.ITEM_SIZE
 
 local Masque = LibStub('Masque', true)
+local AceTimer = LibStub('AceTimer-3.0')
 
 --------------------------------------------------------------------------------
 -- Button initialization
@@ -80,6 +81,8 @@ function buttonProto:OnRelease()
 	self.texture = nil
 	self.bagFamily = nil
 	self.stack = nil
+	self.isUpgrade = nil
+	self.isDowngrade = nil
 end
 
 function buttonProto:ToString()
@@ -210,6 +213,15 @@ function buttonProto:UNIT_QUEST_LOG_CHANGED(event, unit)
 	end
 end
 
+function buttonProto:UpdateUpgradeTexture(self)
+	local upgradeTexture = self.upgradeTexture
+	if self.isUpgrade then
+		upgradeTexture:Show()
+	else
+		upgradeTexture:Hide()
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Display updating
 --------------------------------------------------------------------------------
@@ -252,6 +264,34 @@ function buttonProto:Update()
 	else
 		self.Stock:Hide()
 	end
+
+	if self.upgradeTexture then
+		self.upgradeTexture:Hide()
+		self.upgradeTexture = nil
+	end
+
+
+	-- update upgrade texture for Empress Quest Assist
+	if not self.upgradeTexture then
+		local upgradeTexture = self:CreateTexture(nil, "OVERLAY")
+		--upgradeTexture:Hide()
+		upgradeTexture:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
+		--upgradeTexture:SetTexCoord(0, 1, 1, 0) -- Flip the texture vertically
+		upgradeTexture:SetPoint("TOP", icon, "TOPLEFT", 10, -2)
+		--upgradeTexture:SetAllPoints(icon)
+		upgradeTexture:SetSize(18, 18)
+		--upgradeTexture:SetVertexColor(0, 1, 0) -- Set the color to green
+		self.upgradeTexture = upgradeTexture
+	end
+
+	if self.isUpgrade then
+		self.upgradeTexture:Show()
+	elseif self.isDowngrade then
+		self.upgradeTexture:Hide()
+	else
+		self.upgradeTexture:Hide()
+	end
+
 	self:UpdateCount()
 	self:UpdateBorder()
 	self:UpdateCooldown()
@@ -259,6 +299,8 @@ function buttonProto:Update()
 	if self.UpdateSearch then
 		self:UpdateSearch()
 	end
+	AceTimer:ScheduleTimer(function() self:UpdateUpgradeTexture(self) end, 0.5)
+
 	addon:SendMessage('AdiBags_UpdateButton', self)
 end
 
