@@ -3,27 +3,20 @@
 
 ![wow_CNgtiMLTXH](https://user-images.githubusercontent.com/74269253/229909788-3782f7b8-a995-4095-b997-37bf895675b6.png)
 
-## Support
-- Show **Love and Support** my goals **[Boosty](https://boosty.to/sattva108)**
-
-## Credit
-- Credit to [AdiAddons](https://github.com/AdiAddons)    
-- Code from [AdiBags](https://github.com/AdiAddons/AdiBags)    
-
 
 ## Download & Installation
 
-1. [Download](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/archive/refs/heads/main.zip) zip via green `Code` button on top. 
-2. Copy the "AdiBags-WoTLK-3.3.5-main" folder inside the .zip to `"\Interface\AddOns\"`
+1. **[Download](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/archive/refs/heads/main.zip)** **.ZIP** via green `Code` button on top of this page. 
+2. Copy the `AdiBags-WoTLK-3.3.5-main` folder inside the **.ZIP** to `"\Interface\AddOns\"`
 3. Rename the folder to --> **`AdiBags`**
 4. **(!!!)** Make sure the folder name is called exactly **`AdiBags`**
-- _**(Optional)**_ Download supported extra-modules for AdiBags, if you want - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
+- _**(Optional)**_ - Download supported extra-modules for AdiBags - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
 
 
 ## Usage
-`/adibags` - chat command to open **CONFIGURATION panel** for AdiBags.
+`/adibags` or `/ab` - chat command to open **CONFIGURATION panel** for AdiBags.
 <details> <summary> More usage: </summary>
-1. Enable / Change modules by selecting them in the AdibBags menu (`/ab` command).
+1. Enable / Change modules by selecting them in the AdibBags menu ( /ab command).
 <br>
 2. `Left-Click` bag icon in top-left corner to manage your current bags. 
 <br>
@@ -55,3 +48,10 @@
 Interesting extra-modules for AdiBags, you can download them here - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
 
 #### `Changelog`, `To Do List` and `known bugs` can be viewed in [Changelog and Notes.txt](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5/blob/main/AdiBags/Changelog%20and%20Notes.txt) inside addon folder.
+
+## Support
+- Show **Love and Support** my goals **[Boosty](https://boosty.to/sattva108)**
+
+## Credit
+- Credit to [AdiAddons](https://github.com/AdiAddons)    
+- Code from [AdiBags](https://github.com/AdiAddons/AdiBags)    
