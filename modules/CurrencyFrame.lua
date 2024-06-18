@@ -82,7 +82,7 @@ do
 		if not index then return end
 		repeat
 			index = index + 1
-			local name, isHeader, isExpanded, isUnused, isWatched, count, icon = GetCurrencyListInfo(index)
+			local name, isHeader, isExpanded, isUnused, isWatched, count, extraCurrencyType, icon, itemID = GetCurrencyListInfo(index)
 			if name then
 				if isHeader then
 					if not isExpanded then
