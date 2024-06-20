@@ -90,7 +90,15 @@ do
 						ExpandCurrencyList(index, true)
 					end
 				else
-					return index, name, isHeader, isExpanded, isUnused, isWatched, count, icon
+					if ( extraCurrencyType == 1 ) then	--Arena points
+						icon = "Interface\\PVPFrame\\PVP-ArenaPoints-Icon"
+					elseif ( extraCurrencyType == 2 ) then --Honor points
+						local factionGroup = UnitFactionGroup("player");
+						if ( factionGroup ) then
+							icon = "Interface\\TargetingFrame\\UI-PVP-".."Alliance"
+						end
+					end
+					return index, name, isHeader, isExpanded, isUnused, isWatched, count, extraCurrencyType, icon
 				end
 			end
 		until index > GetCurrencyListSize()
@@ -106,32 +114,37 @@ do
 	end
 end
 
+local ICON_STRING_HONOR = "%d\124T%s:0:0:0:0:128:180:20:70:20:70\124t"
 local ICON_STRING = "%d\124T%s:0:0:0:0:64:64:5:59:5:59\124t"
 
 local values = {}
 local updating
 function mod:Update()
-	if not self.widget or updating then return end
-	updating = true
-
-	for i, name, _, _, _, _, count, icon in IterateCurrencies() do
-		if self.db.profile.shown[name] then
-			tinsert(values, format(ICON_STRING, count, icon))
-		end
-	end
-
-	local widget, fs = self.widget, self.fontstring
-	if #values > 0 then
-		widget:Show()
-		fs:SetText(tconcat(values, " "))
-		widget:SetWidth(fs:GetStringWidth())
-		widget:SetHeight(fs:GetStringHeight())
-		wipe(values)
-	else
-		widget:Hide()
-	end
-
-	updating = false
+    if not self.widget or updating then return end
+    updating = true
+    
+    for i, name, _, _, _, _, count, extraCurrencyType, icon in IterateCurrencies() do
+        if self.db.profile.shown[name] then
+            if extraCurrencyType == 2 then -- Honor points
+                tinsert(values, format(ICON_STRING_HONOR, count, icon))
+            else
+                tinsert(values, format(ICON_STRING, count, icon))
+            end
+        end
+    end
+    
+    local widget, fs = self.widget, self.fontstring
+    if #values > 0 then
+        widget:Show()
+        fs:SetText(tconcat(values, " "))
+        widget:SetWidth(fs:GetStringWidth())
+        widget:SetHeight(fs:GetStringHeight())
+        wipe(values)
+    else
+        widget:Hide()
+    end
+    
+    updating = false
 end
 
 function mod:GetOptions()
@@ -143,7 +156,6 @@ function mod:GetOptions()
 		end
 		return values
 	end
-
 	return {
 		shown = {
 			name = L['Currencies to show'],
