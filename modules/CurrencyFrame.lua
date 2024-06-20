@@ -95,7 +95,7 @@ do
 					elseif ( extraCurrencyType == 2 ) then --Honor points
 						local factionGroup = UnitFactionGroup("player");
 						if ( factionGroup ) then
-							icon = "Interface\\TargetingFrame\\UI-PVP-".."Alliance"
+							icon = "Interface\\TargetingFrame\\UI-PVP-"..factionGroup
 						end
 					end
 					return index, name, isHeader, isExpanded, isUnused, isWatched, count, extraCurrencyType, icon
@@ -106,7 +106,6 @@ do
 			ExpandCurrencyList(index, false)
 		end
 	end
-
 	local collapse = {}
 	function IterateCurrencies()
 		wipe(collapse)
