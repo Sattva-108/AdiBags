@@ -29,7 +29,7 @@ mod.uiDesc = L['Display character currency at bottom left of the backpack.']
 function mod:OnInitialize()
 	self.db = addon.db:RegisterNamespace(self.moduleName, {
 		profile = {
-			shown = { ['*'] = true },
+			shown = { ['*'] = false },
 		},
 	})
 end
@@ -106,6 +106,7 @@ do
 			ExpandCurrencyList(index, false)
 		end
 	end
+	
 	local collapse = {}
 	function IterateCurrencies()
 		wipe(collapse)
@@ -146,6 +147,7 @@ function mod:Update()
     updating = false
 end
 
+
 function mod:GetOptions()
 	local values = {}
 	local function GetValueList()
@@ -155,6 +157,7 @@ function mod:GetOptions()
 		end
 		return values
 	end
+	
 	return {
 		shown = {
 			name = L['Currencies to show'],
