@@ -57,6 +57,7 @@ modules\TidyBags.lua
 modules\MoneyFrame.lua
 modules\FilterOverride.lua
 modules\Junk.lua
+modules\CurrencyFrame.lua
 modules\TooltipInfo.lua
 modules\SectionVisibilityDropdown.lua
 modules\ItemLevel.lua
