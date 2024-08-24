@@ -74,6 +74,7 @@ function mod:OnInitialize()
 			minLevel = 1,
 			ignoreJunk = true,
 			ignoreHeirloom = true,
+			ignoreAmmo = true,
 			anchor = 'BOTTOMLEFT',
 			offsetX = 2,
 			offsetY = 1,
@@ -81,29 +82,29 @@ function mod:OnInitialize()
 		},
 	})
 	self.font = addon:CreateFont(
-		self.name..'Font',
-		NumberFontNormalLarge,
-		function() return self.db.profile.text end
-	)
-	self.font.SettingHook = UpdateFont
-	if self.db.profile.colored == true then
-		self.db.profile.colorScheme = 'original'
-		self.db.profile.colored = nil
-	elseif self.db.profile.colored == false then
-		self.db.profile.colorScheme = 'none'
-		self.db.profile.colored = nil
-	end
-	if SyLevel then
-		SyLevel:RegisterPipe(
-			'Adibags',
-			function() self.db.profile.useSyLevel = true end,
-			function() self.db.profile.useSyLevel = false end,
-			function() self:SendMessage('AdiBags_UpdateAllButtons') end,
-			'AdiBags'
-		)
-		SyLevel:RegisterFilterOnPipe('Adibags', 'Item level text')
-		SyLevelDB.EnabledFilters['Item level text']['Adibags'] = true
-	end
+	self.name..'Font',
+	NumberFontNormalLarge,
+	function() return self.db.profile.text end
+)
+self.font.SettingHook = UpdateFont
+if self.db.profile.colored == true then
+	self.db.profile.colorScheme = 'original'
+	self.db.profile.colored = nil
+elseif self.db.profile.colored == false then
+	self.db.profile.colorScheme = 'none'
+	self.db.profile.colored = nil
+end
+if SyLevel then
+	SyLevel:RegisterPipe(
+	'Adibags',
+	function() self.db.profile.useSyLevel = true end,
+	function() self.db.profile.useSyLevel = false end,
+	function() self:SendMessage('AdiBags_UpdateAllButtons') end,
+	'AdiBags'
+)
+SyLevel:RegisterFilterOnPipe('Adibags', 'Item level text')
+SyLevelDB.EnabledFilters['Item level text']['Adibags'] = true
+end
 end
 
 local function UpdateTextLocation()
@@ -149,14 +150,15 @@ function mod:UpdateButton(event, button)
 	local settings = self.db.profile
 	local link = button:GetItemLink()
 	local text = texts[button]
-
+	
 	if link then
 		local _, _, quality, _, reqLevel, _, _, _, loc = GetItemInfo(link)
-local level = ItemUpgradeInfo:GetUpgradedItemLevel(link) or 0 -- Ugly workaround
-if level >= settings.minLevel
-and (quality > 0 or not settings.ignoreJunk)
-and (loc ~= "" or not settings.equippableOnly)
-and (quality ~= 7 or not settings.ignoreHeirloom)
+		local level = ItemUpgradeInfo:GetUpgradedItemLevel(link) or 0 -- Ugly workaround
+		if level >= settings.minLevel
+		and (quality > 0 or not settings.ignoreJunk)
+		and (loc ~= "" or not settings.equippableOnly)
+		and (loc ~= "INVTYPE_AMMO" or not settings.ignoreAmmo)
+		and (quality ~= 7 or not settings.ignoreHeirloom)
 		then
 			if SyLevel then
 				if settings.useSyLevel then
@@ -235,6 +237,12 @@ function mod:GetOptions()
 			desc = L['Do not show level of heirloom items.'],
 			type = 'toggle',
 			order = 50,
+		},		
+		ignoreAmmo = {
+			name = L['Ignore ammunition'],
+			desc = L['Do not show level of arrows/bullets.'],
+			type = 'toggle',
+			order = 60,
 		},
 		positionHeader = {
 			name = L['Text Position'],
@@ -313,7 +321,7 @@ do
 		{ 273, 1.00, 0.75, 1.00 }, -- pink
 		{ 999, 1.00, 1.00, 1.00 }, -- white
 	}
-
+	
 	colorSchemes.original = function(level)
 		for i, tuple in pairs(colors) do
 			if level < tuple[1] then
@@ -331,7 +339,7 @@ do
 		local function GetY(r, g, b)
 			return 0.3 * r + 0.59 * g + 0.11 * b
 		end
-
+		
 		local function RGBToHCY(r, g, b)
 			local min, max = min(r, g, b), max(r, g, b)
 			local chroma = max - min
@@ -348,7 +356,7 @@ do
 			end
 			return hue, chroma, GetY(r, g, b)
 		end
-
+		
 		local function HCYtoRGB(hue, chroma, luma)
 			local r, g, b = 0, 0, 0
 			if hue then
@@ -371,7 +379,7 @@ do
 			local m = luma - GetY(r, g, b)
 			return r + m, g + m, b + m
 		end
-
+		
 		colorGradient = function(a, b, ...)
 			local perc
 			if(b == 0) then
@@ -379,7 +387,7 @@ do
 			else
 				perc = a / b
 			end
-
+			
 			if perc >= 1 then
 				local r, g, b = select(select('#', ...) - 2, ...)
 				return r, g, b
@@ -387,11 +395,11 @@ do
 				local r, g, b = ...
 				return r, g, b
 			end
-
+			
 			local num = select('#', ...) / 3
 			local segment, relperc = modf(perc*(num-1))
 			local r1, g1, b1, r2, g2, b2 = select((segment*3)+1, ...)
-
+			
 			local h1, c1, y1 = RGBToHCY(r1, g1, b1)
 			local h2, c2, y2 = RGBToHCY(r2, g2, b2)
 			local c = c1 + (c2-c1) * relperc
@@ -407,21 +415,21 @@ do
 			else
 				return HCYtoRGB(h1 or h2, c, y)
 			end
-
+			
 		end
 	end
-
+	
 	local maxLevelRanges = {
-			[60]  = {  66,  92 },
-			[70]  = { 100, 164 },
-			[80]  = { 187, 284 },
-			[85]  = { 333, 416 },
-			[90]  = { 450, 616 },
-			[100] = { 615, 735 },
-			[110] = { 805, 905 },
-			[120] = { 310, 350 },
+		[60]  = {  66,  92 },
+		[70]  = { 100, 164 },
+		[80]  = { 187, 284 },
+		[85]  = { 333, 416 },
+		[90]  = { 450, 616 },
+		[100] = { 615, 735 },
+		[110] = { 805, 905 },
+		[120] = { 310, 350 },
 	}
-
+	
 	local maxLevelColors = {}
 	do
 		local t = maxLevelColors
@@ -430,7 +438,7 @@ do
 		t[7], t[8], t[9] = GetItemQualityColor(4)
 		t[10], t[11], t[12] = GetItemQualityColor(5)
 	end
-
+	
 	colorSchemes.level = function(level, quality, reqLevel, equipabble)
 		if not equipabble then return 1,1,1 end
 		local playerLevel = UnitLevel('player')
@@ -464,9 +472,9 @@ do
 	end
 	-- Color scheme for quality colors
 	do
-        colorSchemes.qualityColor = function(level, quality)
-            r, g, b, hex = GetItemQualityColor(quality)
-            return r,g,b
-        end
+		colorSchemes.qualityColor = function(level, quality)
+			r, g, b, hex = GetItemQualityColor(quality)
+			return r,g,b
+		end
 	end	
 end

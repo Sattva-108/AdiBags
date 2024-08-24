@@ -7,7 +7,7 @@
 ## Download & Installation
 
 1. **[Download](https://github.com/Sattva-108/AdiBags/archive/refs/heads/main.zip)** **.ZIP** via green `Code` button on top of this page. 
-2. Copy the `AdiBags-WoTLK-3.3.5-main` folder inside the **.ZIP** to `"\Interface\AddOns\"`
+2. Copy the `AdiBags-main` folder inside the **.ZIP** to `"\Interface\AddOns\"`
 3. Rename the folder to --> **`AdiBags`**
 4. **(!!!)** Make sure the folder name is called exactly **`AdiBags`**
 - _**(Optional)**_ - Download supported extra-modules for AdiBags - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
