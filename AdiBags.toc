@@ -61,6 +61,7 @@ modules\CurrencyFrame.lua
 modules\TooltipInfo.lua
 modules\SectionVisibilityDropdown.lua
 modules\ItemLevel.lua
+modules\BankSwitcher.lua
 
 DefaultFilters.lua
 
