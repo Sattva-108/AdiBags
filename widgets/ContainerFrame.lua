@@ -260,7 +260,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		border:SetTexture(0.4, 0.4, 0.4, 0) -- gray border
 
 		-- set the frame strata to be higher than the title text's strata
-		AdiBagsBagMenu:SetFrameStrata("DIALOG")
+		AdiBagsBagMenu:SetFrameStrata("HIGH")
 		AdiBagsBagMenu:SetFrameLevel(100)
 
 		-- add function to hide tooltip
@@ -393,7 +393,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		border:SetTexture(0.4, 0.4, 0.4, 0) -- gray border
 
 		-- set the frame strata to be higher than the title text's strata
-		anchor:SetFrameStrata("DIALOG")
+		anchor:SetFrameStrata("HIGH")
 		anchor:SetFrameLevel(100)
 
 		-- add function to hide tooltip
