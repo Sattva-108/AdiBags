@@ -13,6 +13,7 @@ local assert = _G.assert
 local BACKPACK_CONTAINER = _G.BACKPACK_CONTAINER
 local BankFrame = _G.BankFrame
 local BANK_CONTAINER = _G.BANK_CONTAINER
+local KEYRING_CONTAINER = _G.KEYRING_CONTAINER
 local CloseBankFrame = _G.CloseBankFrame
 local ContainerFrame_GenerateFrame = _G.ContainerFrame_GenerateFrame
 local ContainerFrame_GetOpenFrame = _G.ContainerFrame_GetOpenFrame
@@ -63,8 +64,8 @@ addon:SetDefaultModulePrototype{Debug = addon.Debug}
 --------------------------------------------------------------------------------
 
 do
-	-- Backpack and bags
-	local BAGS = { [BACKPACK_CONTAINER] = BACKPACK_CONTAINER }
+	-- Keyring, backpack, and bag
+	local BAGS = { [KEYRING_CONTAINER] = KEYRING_CONTAINER, [BACKPACK_CONTAINER] = BACKPACK_CONTAINER }
 	for i = 1, NUM_BAG_SLOTS do BAGS[i] = i end
 
 	-- Bank bags

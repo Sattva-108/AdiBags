@@ -411,11 +411,23 @@ function sectionProto:ReorderButtons()
 
 	if self:IsCollapsed() then
 		return self:Hide()
+	else
+		self:Show()
 	end
 
+	-- Use L["Free space"] to build the locale-independent section key for comparison
+	local isFreeSpaceSection = self.key == addon:BuildSectionKey(L["Free space"], L["Free space"])
+
 	for button in pairs(self.buttons) do
-		button:Show()
-		tinsert(buttonOrder, button)
+		local buttonFamilyIsKeyChain = button.bagFamily == 256 or (button:IsStack() and button:GetBagFamily() == 256)
+		local shouldShow = not (isFreeSpaceSection and buttonFamilyIsKeyChain)
+
+		if shouldShow then
+			button:Show()
+			tinsert(buttonOrder, button)
+		else
+			button:Hide()
+		end
 	end
 	tsort(buttonOrder, CompareButtons)
 
