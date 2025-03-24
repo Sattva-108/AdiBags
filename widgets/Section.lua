@@ -411,11 +411,38 @@ function sectionProto:ReorderButtons()
 
 	if self:IsCollapsed() then
 		return self:Hide()
+	else
+		self:Show()
+	end
+
+	local isFreeSpaceSection = self.key == "Free space#Free space"
+	-- Get the Keyring section. Assuming it's registered with key "Key Ring#Key Ring"
+	local keySection = self.container:GetSection("Key Ring", "Key Ring")
+	local keySectionCollapsed = keySection and keySection:IsCollapsed()
+
+	if isFreeSpaceSection then -- Debug only for "Free space" section
+		print("ReorderButtons - Free space Section:")
+		if keySection then
+			print("  Keyring Section Found:", keySection, "Collapsed:", tostring(keySectionCollapsed))
+		else
+			print("  Keyring Section NOT Found!")
+		end
 	end
 
 	for button in pairs(self.buttons) do
-		button:Show()
-		tinsert(buttonOrder, button)
+		local buttonFamilyIsKeyChain = button.bagFamily == 256 or (button:IsStack() and button:GetBagFamily() == 256)
+		local shouldShow = not (keySectionCollapsed and isFreeSpaceSection and buttonFamilyIsKeyChain)
+
+		if isFreeSpaceSection and buttonFamilyIsKeyChain then -- Debug only for keyring buttons in "Free space"
+			print("  Free space Keyring Button:", button, "bagFamily:", button.bagFamily, "isKeyChain:", isKeyChain, "keySectionCollapsed:", tostring(keySectionCollapsed), "shouldShow:", tostring(shouldShow))
+		end
+
+		if shouldShow then
+			button:Show()
+			tinsert(buttonOrder, button)
+		else
+			button:Hide()
+		end
 	end
 	tsort(buttonOrder, CompareButtons)
 
