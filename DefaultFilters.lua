@@ -34,7 +34,7 @@ function addon:SetupDefaultFilters()
     local TRADE_GOODS = BI['Trade Goods']
     local WEAPON = BI["Weapon"]
     local ARMOR = BI["Armor"]
-    local KEY = L['Key Ring']
+    local KEY = L['Keyring']
     local JEWELRY = L["Jewelry"]
     local EQUIPMENT = L['Equipment']
     local AMMUNITION = L['Ammunition']
