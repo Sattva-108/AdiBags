@@ -82,37 +82,64 @@ do
 	end
 
 	local function FindSlotForItem(bags, itemId, itemCount)
+		print(">>> FindSlotForItem CALLED <<<")
+		print("Input bags:", unpack(bags))
+		print("itemId:", itemId, "itemCount:", itemCount)
+
 		local itemFamily = addon.GetItemFamily(itemId)
-		local maxStack = select(8, GetItemInfo(itemId)) or 1
-		addon:Debug('FindSlotForItem', itemId, GetItemInfo(itemId), 'count=', itemCount, 'maxStack=', maxStack, 'family=', itemFamily, 'bags:', unpack(bags))
+		print("itemFamily:", itemFamily)
+
+		local info = {GetItemInfo(itemId)}
+		print("GetItemInfo:", unpack(info))
+
+		local maxStack = select(8, unpack(info)) or 1
+		print("maxStack:", maxStack)
+
 		local bestBag, bestSlot, bestScore
+
 		for i, bag in pairs(bags) do
-			local scoreBonus = band(bag == KEYRING_CONTAINER and 256 or select(2, GetContainerNumFreeSlots(bag)) or 0, itemFamily) ~= 0 and maxStack or 0
-			for slot = 1, GetContainerNumSlots(bag) do
-				local texture, slotCount, locked = GetContainerItemInfo(bag, slot)
-				if not locked and (not texture or GetContainerItemID(bag, slot) == itemId) then
-					slotCount = slotCount or 0
-					if slotCount + itemCount <= maxStack then
-						local slotScore = slotCount + scoreBonus
-						if not bestScore or slotScore > bestScore then
-							addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, 'score=', slotScore, 'NEW BEST SLOT')
-							bestBag, bestSlot, bestScore = bag, slot, slotScore
-						--[===[@debug@
-						else
-							addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, 'score=', slotScore, '<', bestScore)
-						--@end-debug@]===]
+			local _, bagFamily = GetContainerNumFreeSlots(bag)
+			local itemFam = addon.GetItemFamily(itemId)
+			local usableFamily = (bag == KEYRING_CONTAINER) and 256 or bagFamily or 0
+
+			if bag == KEYRING_CONTAINER and itemFam ~= 256 then
+				print("Skipping keyring: item not key")
+			else
+				local scoreBonus = bit.band(usableFamily, itemFamily) ~= 0 and maxStack or 0
+				print("scoreBonus:", scoreBonus, "(usableFamily:", usableFamily, ")")
+
+				local numSlots = GetContainerNumSlots(bag)
+				print("Bag", bag, "has", numSlots, "slots")
+
+				for slot = 1, numSlots do
+					local texture, count, isLocked = GetContainerItemInfo(bag, slot)
+					local slotItemId = GetContainerItemID(bag, slot)
+
+					print("Slot", slot, "=>", "locked:", isLocked, "texture:", texture, "count:", count, "itemId:", slotItemId)
+
+					if not isLocked and (not texture or slotItemId == itemId) then
+						count = count or 0
+						local fits = (count + itemCount) <= maxStack
+						print("Slot", slot, "can fit?", fits, "(count:", count, "+", itemCount, "<=", maxStack, ")")
+
+						if fits then
+							local score = count + scoreBonus
+							print("Slot", slot, "score:", score)
+
+							if not bestScore or score > bestScore then
+								print("New best slot found:", "bag", bag, "slot", slot, "score", score)
+								bestBag, bestSlot, bestScore = bag, slot, score
+							end
 						end
-					--[===[@debug@
-					else
-						addon:Debug('FindSlotForItem', bag, slot, 'slotCount=', slotCount, ': not enough space')
-					--@end-debug@]===]
 					end
 				end
 			end
 		end
-		addon:Debug('FindSlotForItem =>', bestBag, bestSlot)
+
+		print(">>> FindSlotForItem DONE <<< Result:", bestBag, bestSlot)
 		return bestBag, bestSlot
 	end
+
 
 	function swapFrame:ProcessInner()
 		if not CursorHasItem() then

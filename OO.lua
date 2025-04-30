@@ -222,3 +222,24 @@ function SlashCmdList.ADIBAGSOODEBUG()
 	end
 end
 --@end-debug@]===]
+
+-- Define a global flag to keep track of debug state
+addon.debugEnabled = false
+
+-- Slash command to toggle debug
+SLASH_ADIBAGSOODEBUG1 = "/aboo"
+function SlashCmdList.ADIBAGSOODEBUG()
+	-- Toggle the debug state
+	if addon.debugEnabled then
+		-- Disable debugging
+		addon.debugEnabled = false
+		addon.Debug = function() end -- Set it to a no-op function
+		print("Debugging is now disabled.")
+	else
+		-- Enable debugging
+		addon.debugEnabled = true
+		addon.Debug = function(...) print("AdiBags Debug:", ...) end -- Enable debug printing
+		print("Debugging is now enabled.")
+	end
+end
+
