@@ -4,7 +4,7 @@
 -- @release $Id: AceConfigDialog-3.0.lua 998 2010-12-01 18:39:53Z nevcairiel $
 
 local LibStub = LibStub
-local MAJOR, MINOR = "AceConfigDialog-3.0", 333
+local MAJOR, MINOR = "AceConfigDialog-3.0", 54
 local AceConfigDialog, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigDialog then return end
@@ -311,25 +311,28 @@ end
 local tempOrders
 local tempNames
 
-local function compareOptions(a, b)
-	if not a then return true end
-	if not b then return false end
-
-	local OrderA = tempOrders[a] or 100
-	local OrderB = tempOrders[b] or 100
-
+local function compareOptions(a,b)
+	if not a then
+		return true
+	end
+	if not b then
+		return false
+	end
+	local OrderA, OrderB = tempOrders[a] or 100, tempOrders[b] or 100
 	if OrderA == OrderB then
 		local NameA = (type(tempNames[a]) == "string") and tempNames[a] or ""
 		local NameB = (type(tempNames[b]) == "string") and tempNames[b] or ""
-
-		--print("Comparing names:", NameA, NameB)
 		return NameA:upper() < NameB:upper()
 	end
-
-	if OrderA < 0 and OrderB > 0 then return false end
-	if OrderA > 0 and OrderB < 0 then return true end
-
---	print("Comparing orders:", OrderA, OrderB)
+	if OrderA < 0 then
+		if OrderB > 0 then
+			return false
+		end
+	else
+		if OrderB < 0 then
+			return true
+		end
+	end
 	return OrderA < OrderB
 end
 
