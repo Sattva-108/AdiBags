@@ -87,7 +87,6 @@ do
 			local E, L, V, P, G = unpack(_G.ElvUI or {})
 			local AS = E and E:GetModule("AddOnSkins", true)
 			if AS then
-				print("called")
 				-- this will fire every hooksecurefunc(*, "OnCreate", …)
 				self:OnCreate()
 			end
