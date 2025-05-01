@@ -846,42 +846,52 @@ function containerProto:UpdateContent(bag)
 	content.family = bagFamily
 	for slot = 1, newSize do
 		local itemId = GetContainerItemID(bag, slot)
-		local link = GetContainerItemLink(bag, slot)
-		if not itemId or (link and IsValidItemLink(link)) then
-			local slotData = content[slot]
-			if not slotData then
-				slotData = {
-					bag = bag,
-					slot = slot,
-					slotId = GetSlotId(bag, slot),
-					bagFamily = bagFamily,
-					count = 0,
-					isBank = self.isBank,
-				}
-				content[slot] = slotData
+		-- Explicitly clear empty keyring slots to remove ghost buttons
+		if bag == KEYRING_CONTAINER and not itemId then
+			if content[slot] then
+				removed[content[slot].slotId] = content[slot].link
+				content[slot] = nil
 			end
 
-			local name, count, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
-			if link then
-				name, _, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link)
-				count = select(2, GetContainerItemInfo(bag, slot)) or 0
-			else
-				link, count = false, 0
-			end
+		else
+			-- ✅ Normal item handling logic
+			local link = GetContainerItemLink(bag, slot)
+			if not itemId or (link and IsValidItemLink(link)) then
+				local slotData = content[slot]
+				if not slotData then
+					slotData = {
+						bag = bag,
+						slot = slot,
+						slotId = GetSlotId(bag, slot),
+						bagFamily = bagFamily,
+						count = 0,
+						isBank = self.isBank,
+					}
+					content[slot] = slotData
+				end
 
-			if GetDistinctItemID(slotData.link) ~= GetDistinctItemID(link) then
-				removed[slotData.slotId] = slotData.link
-				slotData.count = count
-				slotData.link = link
-				slotData.itemId = itemId
-				slotData.name, slotData.quality, slotData.iLevel, slotData.reqLevel, slotData.class, slotData.subclass, slotData.equipSlot, slotData.texture, slotData.vendorPrice = name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
-				slotData.maxStack = maxStack or (link and 1 or 0)
-				added[slotData.slotId] = slotData
-			elseif slotData.count ~= count then
-				slotData.count = count
-				changed[slotData.slotId] = slotData
-			end
-		end
+				local name, count, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice
+				if link then
+					name, _, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice = GetItemInfo(link)
+					count = select(2, GetContainerItemInfo(bag, slot)) or 0
+				else
+					link, count = false, 0
+				end
+
+				if GetDistinctItemID(slotData.link) ~= GetDistinctItemID(link) then
+					removed[slotData.slotId] = slotData.link
+					slotData.count = count
+					slotData.link = link
+					slotData.itemId = itemId
+					slotData.name, slotData.quality, slotData.iLevel, slotData.reqLevel, slotData.class, slotData.subclass, slotData.equipSlot, slotData.texture, slotData.vendorPrice = name, quality, iLevel, reqLevel, class, subclass, equipSlot, texture, vendorPrice
+					slotData.maxStack = maxStack or (link and 1 or 0)
+					added[slotData.slotId] = slotData
+				elseif slotData.count ~= count then
+					slotData.count = count
+					changed[slotData.slotId] = slotData
+				end
+			end -- if not itemId or valid link
+		end -- skip empty keyring
 	end
 	for slot = content.size, newSize + 1, -1 do
 		local slotData = content[slot]
