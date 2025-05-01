@@ -73,6 +73,28 @@ function buttonProto:OnAcquire(container, bag, slot)
 	self:FullUpdate()
 end
 
+do
+	local buttonProtoHook = addon:GetClass("ItemButton").prototype
+	local orig_OnAcquire = buttonProtoHook.OnAcquire
+
+	function buttonProtoHook:OnAcquire(container, bag, slot)
+		-- 1) vanilla AdiBags acquire
+		orig_OnAcquire(self, container, bag, slot)
+
+		-- 2) only if AddOnSkins is present, retrigger OnCreate hooks
+		if IsAddOnLoaded("ElvUI") then
+			-- safely unpack ElvUI (won't error if ElvUI is nil)
+			local E, L, V, P, G = unpack(_G.ElvUI or {})
+			local AS = E and E:GetModule("AddOnSkins", true)
+			if AS then
+				print("called")
+				-- this will fire every hooksecurefunc(*, "OnCreate", …)
+				self:OnCreate()
+			end
+		end
+	end
+end
+
 function buttonProto:OnRelease()
 	self:SetSection(nil)
 	self.container = nil
