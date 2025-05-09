@@ -52,15 +52,31 @@ local childrenNames = { "Cooldown", "IconTexture", "IconQuestTexture", "Count", 
 
 function buttonProto:OnCreate()
 	local name = self:GetName()
-	for i, childName in pairs(childrenNames ) do
-		self[childName] = _G[name..childName]
+	for i, childName in pairs(childrenNames) do
+		self[childName] = _G[name .. childName]
 	end
 	self:RegisterForDrag("LeftButton")
-	self:RegisterForClicks("LeftButtonUp","RightButtonUp")
-	self:SetScript('OnShow', self.OnShow)
-	self:SetScript('OnHide', self.OnHide)
+	self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+	self:SetScript("OnShow", self.OnShow)
+	self:SetScript("OnHide", self.OnHide)
 	self:SetWidth(ITEM_SIZE)
 	self:SetHeight(ITEM_SIZE)
+
+	-- create the “upgrade” overlay once
+	local upgrade = self:CreateTexture(nil, "OVERLAY")
+	upgrade:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
+	upgrade:SetPoint("TOP", self.IconTexture, "TOPLEFT", 10, -2)
+	upgrade:SetSize(18, 18)
+	upgrade:Hide()
+	self.upgradeTexture = upgrade
+
+	-- create the “sell” overlay once
+	local sell = self:CreateTexture(nil, "OVERLAY")
+	sell:SetTexture("Interface\\Buttons\\UI-GroupLoot-Coin-Up.blp")
+	sell:SetPoint("TOP", self.IconTexture, "TOPRIGHT", -10, -1)
+	sell:SetSize(18, 18)
+	sell:Hide()
+	self.sellTexture = sell
 end
 
 function buttonProto:OnAcquire(container, bag, slot)
@@ -246,24 +262,6 @@ function buttonProto:UNIT_QUEST_LOG_CHANGED(event, unit)
 	end
 end
 
-function buttonProto:UpdateUpgradeTexture(self)
-	local upgradeTexture = self.upgradeTexture
-	if self.isUpgrade then
-		upgradeTexture:Show()
-	else
-		upgradeTexture:Hide()
-	end
-end
-
-function buttonProto:UpdateSellTexture(self)
-	local sellTexture = self.sellTexture
-	if self.beingSold then
-		sellTexture:Show()
-	else
-		sellTexture:Hide()
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Display updating
 --------------------------------------------------------------------------------
@@ -287,10 +285,12 @@ end
 
 function buttonProto:Update()
 	if not self:CanUpdate() then return end
+
+	-- icon & empty-slot handling
 	local icon = self.IconTexture
 	if self.texture then
 		icon:SetTexture(self.texture)
-		icon:SetTexCoord(0,1,0,1)
+		icon:SetTexCoord(0, 1, 0, 1)
 	else
 		if Masque then
 			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
@@ -299,6 +299,8 @@ function buttonProto:Update()
 			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
 		end
 	end
+
+	-- bag-type tag
 	local tag = (not self.itemId or addon.db.profile.showBagType) and addon:GetFamilyTag(self.bagFamily)
 	if tag then
 		self.Stock:SetText(tag)
@@ -307,50 +309,11 @@ function buttonProto:Update()
 		self.Stock:Hide()
 	end
 
-	if self.upgradeTexture then
-		self.upgradeTexture:Hide()
-		self.upgradeTexture = nil
-	end
-
-
-	-- update upgrade texture for Empress Quest Assist
-	if not self.upgradeTexture then
-		local upgradeTexture = self:CreateTexture(nil, "OVERLAY")
-		--upgradeTexture:Hide()
-		upgradeTexture:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
-		--upgradeTexture:SetTexCoord(0, 1, 1, 0) -- Flip the texture vertically
-		upgradeTexture:SetPoint("TOP", icon, "TOPLEFT", 10, -2)
-		--upgradeTexture:SetAllPoints(icon)
-		upgradeTexture:SetSize(18, 18)
-		--upgradeTexture:SetVertexColor(0, 1, 0) -- Set the color to green
-		self.upgradeTexture = upgradeTexture
-	end
-
+	-- show/hide our two overlays
 	if self.isUpgrade then
 		self.upgradeTexture:Show()
-	elseif self.isDowngrade then
-		self.upgradeTexture:Hide()
 	else
 		self.upgradeTexture:Hide()
-	end
-
-	if self.sellTexture then
-		self.sellTexture:Hide()
-		self.sellTexture = nil
-	end
-
-
-	-- update upgrade texture for Empress Quest Assist
-	if not self.sellTexture then
-		local sellTexture = self:CreateTexture(nil, "OVERLAY")
-		--sellTexture:Hide()
-		sellTexture:SetTexture("interface\\buttons\\ui-grouploot-coin-up.blp")
-		--sellTexture:SetTexCoord(0, 1, 1, 0) -- Flip the texture vertically
-		sellTexture:SetPoint("TOP", icon, "TOPRIGHT", -10, -1)
-		--sellTexture:SetAllPoints(icon)
-		sellTexture:SetSize(18, 18)
-		--sellTexture:SetVertexColor(0, 1, 0) -- Set the color to green
-		self.sellTexture = sellTexture
 	end
 
 	if self.beingSold then
@@ -359,6 +322,7 @@ function buttonProto:Update()
 		self.sellTexture:Hide()
 	end
 
+	-- the rest of your existing update chain
 	self:UpdateCount()
 	self:UpdateBorder()
 	self:UpdateCooldown()
@@ -366,10 +330,8 @@ function buttonProto:Update()
 	if self.UpdateSearch then
 		self:UpdateSearch()
 	end
-	AceTimer:ScheduleTimer(function() self:UpdateUpgradeTexture(self) end, 0.5)
-	AceTimer:ScheduleTimer(function() self:UpdateSellTexture(self) end, 0.5)
 
-	addon:SendMessage('AdiBags_UpdateButton', self)
+	addon:SendMessage("AdiBags_UpdateButton", self)
 end
 
 function buttonProto:UpdateCount()
