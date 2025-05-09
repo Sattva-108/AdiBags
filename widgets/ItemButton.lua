@@ -61,22 +61,6 @@ function buttonProto:OnCreate()
 	self:SetScript("OnHide", self.OnHide)
 	self:SetWidth(ITEM_SIZE)
 	self:SetHeight(ITEM_SIZE)
-
-	-- create the “upgrade” overlay once
-	local upgrade = self:CreateTexture(nil, "OVERLAY")
-	upgrade:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
-	upgrade:SetPoint("TOP", self.IconTexture, "TOPLEFT", 10, -2)
-	upgrade:SetSize(18, 18)
-	upgrade:Hide()
-	self.upgradeTexture = upgrade
-
-	-- create the “sell” overlay once
-	local sell = self:CreateTexture(nil, "OVERLAY")
-	sell:SetTexture("Interface\\Buttons\\UI-GroupLoot-Coin-Up.blp")
-	sell:SetPoint("TOP", self.IconTexture, "TOPRIGHT", -10, -1)
-	sell:SetSize(18, 18)
-	sell:Hide()
-	self.sellTexture = sell
 end
 
 function buttonProto:OnAcquire(container, bag, slot)
@@ -309,16 +293,35 @@ function buttonProto:Update()
 		self.Stock:Hide()
 	end
 
-	-- show/hide our two overlays
+	------------------------------------------------------------
+	-- 1) upgrade‐overlay (lazy create + show/hide)
+	------------------------------------------------------------
 	if self.isUpgrade then
+		if not self.upgradeTexture then
+			local t = self:CreateTexture(nil, "OVERLAY")
+			t:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
+			t:SetPoint("TOPLEFT", self.IconTexture,  10, -2)
+			t:SetSize(18,18)
+			self.upgradeTexture = t
+		end
 		self.upgradeTexture:Show()
-	else
+	elseif self.upgradeTexture then
 		self.upgradeTexture:Hide()
 	end
 
+	------------------------------------------------------------
+	-- 2) sell‐overlay (lazy create + show/hide)
+	------------------------------------------------------------
 	if self.beingSold then
+		if not self.sellTexture then
+			local t = self:CreateTexture(nil, "OVERLAY")
+			t:SetTexture("Interface\\Buttons\\UI-GroupLoot-Coin-Up.blp")
+			t:SetPoint("TOPRIGHT", self.IconTexture, -10, -1)
+			t:SetSize(18,18)
+			self.sellTexture = t
+		end
 		self.sellTexture:Show()
-	else
+	elseif self.sellTexture then
 		self.sellTexture:Hide()
 	end
 
