@@ -31,6 +31,7 @@ local StackSplitFrame = _G.StackSplitFrame
 local TEXTURE_ITEM_QUEST_BANG = _G.TEXTURE_ITEM_QUEST_BANG
 local TEXTURE_ITEM_QUEST_BORDER = _G.TEXTURE_ITEM_QUEST_BORDER
 local tostring = _G.tostring
+local UnitLevel = _G.UnitLevel -- ADDED for player level check
 local wipe = _G.wipe
 --GLOBALS>
 
@@ -226,7 +227,7 @@ function buttonProto:OnShow()
 	if self.UpdateSearch then
 		self:RegisterEvent('INVENTORY_SEARCH_UPDATE', 'UpdateSearch')
 	end
-	self:RegisterEvent('UNIT_QUEST_LOG_CHANGED')
+	self:RegisterEvent('UNIT_QUEST_LOG_CHANGED') -- For player level changes and quest log updates
 	self:RegisterMessage('AdiBags_UpdateAllButtons', 'Update')
 	self:RegisterMessage('AdiBags_GlobalLockChanged', 'UpdateLock')
 	self:FullUpdate()
@@ -242,7 +243,7 @@ end
 
 function buttonProto:UNIT_QUEST_LOG_CHANGED(event, unit)
 	if unit == "player" then
-		self:UpdateBorder(event)
+		self:UpdateBorder(event) -- This will also re-evaluate level if player leveled up
 	end
 end
 
@@ -413,35 +414,63 @@ end
 
 function buttonProto:UpdateBorder(isolatedEvent)
 	if self.hasItem then
+		-- Default values for border display
 		local texture, r, g, b, a, x1, x2, y1, y2, blendMode = nil, 1, 1, 1, 1, 0, 1, 0, 1, "BLEND"
+
 		local isQuestItem, questId, isActive = GetContainerItemQuestInfo(self.bag, self.slot)
+
 		if addon.db.profile.questIndicator and (questId and not isActive) then
 			texture = TEXTURE_ITEM_QUEST_BANG
+			-- r,g,b,a default to 1,1,1,1 which is fine for quest bang texture
 		elseif addon.db.profile.questIndicator and (questId or isQuestItem) then
 			texture = TEXTURE_ITEM_QUEST_BORDER
-		elseif addon.db.profile.qualityHighlight then
-			local _, _, quality = GetItemInfo(self.itemId)
-			if quality and quality >= ITEM_QUALITY_UNCOMMON then
-				r, g, b = GetItemQualityColor(quality)
-				a = addon.db.profile.qualityOpacity
-				texture, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14/64, 49/64, 15/64, 50/64
-				blendMode = "ADD"
-			elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-				local v = 1 - 0.5 * addon.db.profile.qualityOpacity
-				texture, blendMode, r, g, b = true, "MOD", v, v, v
+			-- r,g,b,a default to 1,1,1,1 which is fine for quest border texture
+		else -- Not a quest item, or quest indicators are off.
+			-- Check for unusable items due to level requirement
+			local itemName, _, _, _, minLevelReq = GetItemInfo(self.itemId)
+			if itemName then -- Check if item info is cached (itemName is non-nil)
+				local playerLevel = UnitLevel("player")
+				if minLevelReq > 0 and minLevelReq > playerLevel then
+
+					-- Item is unusable: apply a semi-transparent red overlay
+					r, g, b = 1, 0.2, 0.2 -- Reddish color for the overlay
+					a = 0.45            -- Alpha for the overlay (semi-transparent)
+					texture = true      -- Signal to use a solid color overlay
+					blendMode = "BLEND" -- Blend this color over the item icon
+					-- Texcoords (x1,y1,x2,y2) default to 0,0,1,1 which covers the whole area, correct for solid overlay.
+				end
+			end
+
+			-- If not colored by unusable check, then proceed to quality/junk highlighting
+			if not texture and addon.db.profile.qualityHighlight then
+				local _, _, quality = GetItemInfo(self.itemId) -- GetItemInfo is cached by WoW client, so this is a cheap call
+				if quality and quality >= ITEM_QUALITY_UNCOMMON then
+					r, g, b = GetItemQualityColor(quality)
+					a = addon.db.profile.qualityOpacity
+					texture = [[Interface\Buttons\UI-ActionButton-Border]] -- Specific border texture
+					x1, x2, y1, y2 = 14/64, 49/64, 15/64, 50/64 -- Texcoords for this border
+					blendMode = "ADD" -- Additive blending for quality colors
+				elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+					local v = 1 - 0.5 * addon.db.profile.qualityOpacity -- Dimming factor
+					texture = true -- Signal for solid color overlay
+					blendMode = "MOD" -- Modulate (darken) the item icon
+					r, g, b = v, v, v -- Dim grey color
+					-- 'a' for SetTexture(r,g,b,a) will use the 'a' from the outer scope (which is 1 here by default), this is fine for MOD.
+				end
 			end
 		end
+
 		if texture then
 			local border = self.IconQuestTexture
-			if texture == true then
-				border:SetVertexColor(1, 1, 1, 1)
-				border:SetTexture(r, g, b, a)
-			else
-				border:SetTexture(texture)
-				border:SetVertexColor(r, g, b, a)
+			if texture == true then -- This branch is for solid color overlays (unusable, junk)
+				border:SetVertexColor(1, 1, 1, 1) -- Reset innate vertex color of the texture frame itself
+				border:SetTexture(r, g, b, a)     -- Set the texture frame to be a solid block of color r,g,b with alpha a
+			else -- This branch is for specific textures (quest bang/border, quality border)
+				border:SetTexture(texture)        -- Set the texture from a file path
+				border:SetVertexColor(r, g, b, a) -- Tint this texture using r,g,b and alpha a
 			end
-			border:SetTexCoord(x1, x2, y1, y2)
-			border:SetBlendMode(blendMode)
+			border:SetTexCoord(x1, x2, y1, y2) -- Apply texcoords (full for solid, partial for borders)
+			border:SetBlendMode(blendMode)     -- Set the blend mode
 			border:Show()
 			if isolatedEvent then
 				addon:SendMessage('AdiBags_UpdateBorder', self)
