@@ -393,8 +393,13 @@ function buttonProto:UpdateBorder(isolatedEvent)
 				texture, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14/64, 49/64, 15/64, 50/64
 				blendMode = "ADD"
 			elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-				local v = 1 - 0.5 * addon.db.profile.qualityOpacity
-				texture, blendMode, r, g, b = true, "MOD", v, v, v
+				if Masque then -- <<<< ADD THIS IF CONDITION
+					texture = nil -- Tell AdiBags to do nothing with the border for junk if Masque is on
+				else
+					-- Original AdiBags junk border logic (only if Masque is NOT active)
+					local v = 1 - 0.5 * addon.db.profile.qualityOpacity
+					texture, blendMode, r, g, b = true, "MOD", v, v, v
+				end -- <<<< END IF
 			end
 		end
 		if texture then
@@ -505,23 +510,47 @@ if Masque then
 			-- YOUR ORIGINAL LOGIC FOR isQuest (WHEN isJunk IS FALSE)
 			iqTex:SetDrawLayer("OVERLAY", 7)
 			iqTex:Show()
+			icon:SetBlendMode("DISABLE")
+			icon:SetVertexColor(1, 1, 1, 1)
 
-		elseif isJunk then -- [[ CHANGE #2 FOR JUNK: Styling ]]
-			-- This block now ONLY executes if isJunk is true.
-			-- 1. Dim the icon (from your original non-Masque code's junk handling)
-			local base = addon.db.profile.qualityOpacity or 1
+		elseif isJunk then
+			-- 1. Dim the icon
 			icon:SetBlendMode("BLEND")
 			icon:SetVertexColor(1, 1, 1, 0.4)
-			if icon.SetDrawLayer then icon:SetDrawLayer("OVERLAY", 7) end
+			if icon.SetDrawLayer then icon:SetDrawLayer("ARTWORK", 1) end
 
-			-- 2. Style iqTex (which Masque has now skinned)
-			iqTex:SetTexture(nil)             -- Ensure no AdiBags texture.
-			iqTex:SetVertexColor(1, 1, 1, 1)  -- Ensure no AdiBags tint.
-			iqTex:SetBlendMode("BLEND")
-			iqTex:SetDrawLayer("OVERLAY", 1)  -- LAYER FOR MASQUE'S JUNK BORDER (try 0-6)
+			-- 2. Border styling
+			--iqTex:SetTexture(nil)
+			iqTex:SetVertexColor(0.5, 0.5, 0.5, 0.5)
+			iqTex:SetDrawLayer("OVERLAY", 10)
 			iqTex:Show()
 
+			--for i = 1, self:GetNumRegions() do
+			--	local region = select(i, self:GetRegions())
+			--	if region and region.GetObjectType and region:GetObjectType() == "Texture" then
+			--		local tex = region:GetTexture()
+			--		-- print(string.format("[Tex %d Original] = %s", i, tostring(tex)))
+			--
+			--		if tex then
+			--			-- Normalize backslashes to forward slashes
+			--			local normalizedTex = string.gsub(tex, "\\", "/")
+			--			-- print(string.format("[Tex %d Normalized] = %s", i, tostring(normalizedTex)))
+			--
+			--			-- Now search the normalized string
+			--			if normalizedTex:find("Masque_Caith/Textures/Border", 1, true) then
+			--				print("raised")
+			--				region:SetDrawLayer("OVERLAY", 10)
+			--				print("[+] Raised Masque_Caith Border '" .. tostring(tex) .. "' to OVERLAY/10")
+			--			end
+			--		end
+			--	end
+			--end
+
+
+
 		elseif quality and quality >= ITEM_QUALITY_UNCOMMON then
+			icon:SetBlendMode("DISABLE")
+			icon:SetVertexColor(1, 1, 1, 1)
 			-- YOUR ORIGINAL LOGIC FOR QUALITY ITEMS (WHEN isJunk and isQuest ARE FALSE)
 			local r, g, b = GetItemQualityColor(quality)
 			local qualityOpacityVal = addon.db.profile.qualityOpacity
@@ -530,15 +559,9 @@ if Masque then
 			iqTex:SetDrawLayer("OVERLAY", 7)
 			iqTex:Show()
 
-			-- else: For common/white items, and any other case NOT covered above:
-			--       YOUR ORIGINAL CODE HAD NO EXPLICIT iqTex:Hide() HERE.
-			--       It relied on the original non-Masque UpdateBorder to have hidden it,
-			--       or for Masque's default handling. This behavior is PRESERVED.
-			--       If iqTex was shown by a previous condition and isn't explicitly hidden now,
-			--       it might remain visible. Your original code's implicit "else" is kept.
-			--       To be truly safe and match what usually happens for "no border", one would
-			--       add iqTex:Hide() in an explicit final 'else', but I will NOT add that
-			--       to strictly adhere to "only touch junk".
+		 else
+			icon:SetBlendMode("DISABLE")
+			icon:SetVertexColor(1, 1, 1, 1)
 		end
 		-- (everything else—common items & empty slots—will now use Masque’s defaults) - YOUR COMMENT
 	end)
