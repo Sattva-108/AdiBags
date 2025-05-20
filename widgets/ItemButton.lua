@@ -377,59 +377,55 @@ function buttonProto:UpdateCooldown()
 end
 
 function buttonProto:UpdateBorder(isolatedEvent)
-	-- local buttonName = self:GetName() -- DEBUG
-
 	if self.hasItem then
-		local texturePath = nil
-		local r, g, b, a = 1, 1, 1, 1
-		local texCoords = {0, 1, 0, 1}
-		local blendMode = "BLEND"
-		local applySolidColor = false
-		-- local intendedTextureType = "NONE_APPLICABLE" -- DEBUG
+		local textureToSet = nil -- Stores the texture path or the 'true' flag for solid color
+		local r, g, b, a = 1, 1, 1, 1 -- Default tint: white, opaque
+		local texCoordX1, texCoordX2, texCoordY1, texCoordY2 = 0, 1, 0, 1 -- Default tex coords
+		local blendModeToUse = "BLEND" -- Default blend mode
 
 		local isQuestItem, questId, isActive = GetContainerItemQuestInfo(self.bag, self.slot)
 
 		if addon.db.profile.questIndicator and (questId and not isActive) then
-			texturePath = TEXTURE_ITEM_QUEST_BANG
-			-- intendedTextureType = "QUEST_BANG" -- DEBUG
+			textureToSet = TEXTURE_ITEM_QUEST_BANG
+			-- r,g,b,a remain 1,1,1,1 (white tint) as texture is pre-colored
 		elseif addon.db.profile.questIndicator and (questId or isQuestItem) then
-			texturePath = TEXTURE_ITEM_QUEST_BORDER
-			-- intendedTextureType = "QUEST_BORDER" -- DEBUG
+			textureToSet = TEXTURE_ITEM_QUEST_BORDER
+			-- r,g,b,a remain 1,1,1,1 (white tint)
 		elseif addon.db.profile.qualityHighlight then
 			local _, _, quality = GetItemInfo(self.itemId)
 			if quality and quality >= ITEM_QUALITY_UNCOMMON then
 				r, g, b = GetItemQualityColor(quality)
 				a = addon.db.profile.qualityOpacity
-				texturePath = [[Interface\Buttons\UI-ActionButton-Border]]
-				texCoords = {14/64, 49/64, 15/64, 50/64}
-				blendMode = "ADD"
-				-- intendedTextureType = "QUALITY_BORDER" -- DEBUG
+				textureToSet = [[Interface\Buttons\UI-ActionButton-Border]]
+				texCoordX1, texCoordX2, texCoordY1, texCoordY2 = 14/64, 49/64, 15/64, 50/64
+				blendModeToUse = "ADD"
 			elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
 				local v = 1 - (0.5 * addon.db.profile.qualityOpacity)
 				r, g, b = v, v, v
-				a = addon.db.profile.qualityOpacity
-				applySolidColor = true
-				blendMode = "MOD"
-				-- intendedTextureType = "JUNK_SOLID" -- DEBUG
+				a = addon.db.profile.qualityOpacity -- Keep this for consistent junk alpha
+				textureToSet = true -- Flag for solid color
+				blendModeToUse = "MOD"
 			end
 		end
 
 		local borderWidget = self.IconQuestTexture
 
-		if texturePath or applySolidColor then
-			-- print(("%s: [AdiBags_UpdateBorder] Setting IconQuestTexture: Type=%s, TargetRGBA=%.2f,%.2f,%.2f,%.2f"):format(buttonName, intendedTextureType, r, g, b, a)) -- DEBUG
-
-			if applySolidColor then
-				borderWidget:SetVertexColor(1, 1, 1, 1)
-				borderWidget:SetTexture(r, g, b, a)
+		if textureToSet then
+			if textureToSet == true then -- Solid color for junk
+				borderWidget:SetVertexColor(1, 1, 1, 1) -- Reset tint for solid color
+				borderWidget:SetTexture(r, g, b, a)     -- Apply solid color (r,g,b) with alpha 'a'
 			else
-				borderWidget:SetTexture(texturePath)
-				borderWidget:SetVertexColor(r, g, b, a)
+				borderWidget:SetTexture(textureToSet)   -- Set texture path
+				borderWidget:SetVertexColor(r, g, b, a) -- Tint it
 			end
 
-			borderWidget:SetTexCoord(unpack(texCoords))
-			borderWidget:SetBlendMode(blendMode)
+			borderWidget:SetTexCoord(texCoordX1, texCoordX2, texCoordY1, texCoordY2)
+			borderWidget:SetBlendMode(blendModeToUse)
+
+			-- This is important for Masque interaction, ensuring it's generally on a high layer.
+			-- The Masque hook might also re-assert this if needed after skinning.
 			borderWidget:SetDrawLayer("OVERLAY", 7)
+
 			borderWidget:Show()
 
 			if isolatedEvent then
@@ -439,6 +435,7 @@ function buttonProto:UpdateBorder(isolatedEvent)
 		end
 	end
 
+	-- If no specific border was set by the logic above, hide the IconQuestTexture.
 	self.IconQuestTexture:Hide()
 	if isolatedEvent then
 		addon:SendMessage('AdiBags_UpdateBorder', self)
