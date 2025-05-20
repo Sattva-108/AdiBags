@@ -453,36 +453,24 @@ end
 --------------------------------------------------------------------------------
 -- Masque Support
 --------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
 if Masque then
-	-- Define the neutral/subtle color for Common (white) item borders
-	-- Option 1: Very transparent gray using Caith's border shape.
-	-- Adjust RGBA as needed. Alpha (a) is key here for subtlety.
-	-- For example, a = 0.3 makes it 30% opaque.
-	local COMMON_ITEM_BORDER_COLOR = { r = 0.5, g = 0.5, b = 0.5, a = 0.3 } -- Medium gray, quite transparent
+	-- Decoy Textures (retained from V7.1)
+	local dummyParentFrame = CreateFrame("Frame", "AdiBagsMasqueDummyParentFrame", UIParent)
+	dummyParentFrame:SetSize(1, 1); dummyParentFrame:SetAlpha(0);
 
-	-- Option 2 (Alternative for COMMON_ITEM_BORDER_COLOR if you want almost invisible but still Caith shape):
-	-- local COMMON_ITEM_BORDER_COLOR = { r = 0.3, g = 0.3, b = 0.3, a = 0.1 } -- Darker gray, very transparent
+	local decoyTextureForBorderLayers = dummyParentFrame:CreateTexture("AdiBagsMasqueBorderDecoy", "OVERLAY")
+	decoyTextureForBorderLayers:SetAllPoints(dummyParentFrame); decoyTextureForBorderLayers:SetTexture(nil); decoyTextureForBorderLayers:SetAlpha(0);
+
+	local COMMON_ITEM_BORDER_COLOR = { r = 0.5, g = 0.5, b = 0.5, a = 0.3 }
 
 	hooksecurefunc(buttonProto, "OnCreate", function(self)
-		-- No changes to masqueData itself from V6
+		-- Initialize masqueData. For Border/QuestBorder, we default to IconQuestTexture.
+		-- The hook on UpdateBorder will change this dynamically for junk items.
 		self.masqueData = {
 			Icon = self.IconTexture, Cooldown = self.Cooldown,
 			Normal = self.NormalTexture,
-			Border = self.IconQuestTexture,
-			QuestBorder = self.IconQuestTexture,
+			Border = self.IconQuestTexture,      -- Default: Masque targets IconQuestTexture
+			QuestBorder = self.IconQuestTexture, -- Default: Masque targets IconQuestTexture
 			HotKey = self.Stock, Count = self.Count,
 			FloatingBG = nil, Flash = nil, Pushed = nil, Disabled = nil, Checked = nil,
 			Highlight = nil, Gloss = nil, AutoCastable = nil, AutoCast = nil,
@@ -491,60 +479,88 @@ if Masque then
 	end)
 
 	hooksecurefunc(buttonProto, "UpdateBorder", function(self)
+		-- This hook runs AFTER AdiBags' own buttonProto:UpdateBorder
 		local buttonName = self:GetName()
 		local iqTex = self.IconQuestTexture
 
-		local borderCategory = "EMPTY" -- Default to empty, meaning hide IconQuestTexture
-		local r_override, g_override, b_override, a_override = 1,1,1,1 -- Default color for override
+		local borderCategory = "EMPTY"
+		local r_override, g_override, b_override, a_override = 1,1,1,1
+		local isAdiBagsQuestBorder = false
+		local isJunkItem = false
 
 		if self.hasItem then
+			local _, _, quality = GetItemInfo(self.itemId)
 			local isQuestAPI, questIdAPI, _ = GetContainerItemQuestInfo(self.bag, self.slot)
+
 			if addon.db.profile.questIndicator and (questIdAPI or isQuestAPI) then
+				isAdiBagsQuestBorder = true
 				borderCategory = "QUEST"
-				-- For quest items, we'll let Masque Caith use its default gold.
-				-- No color override needed from AdiBags.
 			elseif addon.db.profile.qualityHighlight then
-				local _, _, quality = GetItemInfo(self.itemId)
-				if quality and quality >= ITEM_QUALITY_UNCOMMON then
-					borderCategory = "QUALITY"
-					r_override, g_override, b_override = GetItemQualityColor(quality)
-					a_override = addon.db.profile.qualityOpacity
-				elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+				if quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+					isJunkItem = true -- Specifically mark as junk
 					borderCategory = "JUNK"
 					local v = 1 - (0.5 * addon.db.profile.qualityOpacity)
 					r_override, g_override, b_override, a_override = v,v,v, addon.db.profile.qualityOpacity
+				elseif quality and quality >= ITEM_QUALITY_UNCOMMON then
+					borderCategory = "QUALITY"
+					r_override, g_override, b_override = GetItemQualityColor(quality)
+					a_override = addon.db.profile.qualityOpacity
 				else -- Common/White item
 					borderCategory = "COMMON"
 					r_override, g_override, b_override, a_override = COMMON_ITEM_BORDER_COLOR.r, COMMON_ITEM_BORDER_COLOR.g, COMMON_ITEM_BORDER_COLOR.b, COMMON_ITEM_BORDER_COLOR.a
 				end
-			else -- No quality highlight for this non-quest item, treat as common for border purposes
-				borderCategory = "COMMON"
+			else -- No quality highlight, or not caught above
+				borderCategory = "COMMON" -- Treat as common if no other category fits
 				r_override, g_override, b_override, a_override = COMMON_ITEM_BORDER_COLOR.r, COMMON_ITEM_BORDER_COLOR.g, COMMON_ITEM_BORDER_COLOR.b, COMMON_ITEM_BORDER_COLOR.a
 			end
 		end
 
-		-- Minimal pre-Masque print
-		-- print(("%s: [MasqueHook_V7.1] ItemID %s: Category=%s."):format(buttonName, tostring(self.itemId or "NO_ITEM"), borderCategory))
+		print(("%s: [MasqueHook_V8] ItemID %s: Category=%s. Original IQTexShown=%s"):format(buttonName, tostring(self.itemId or "NO_ITEM"), borderCategory, tostring(iqTex:IsShown())))
 
 		if self.masqueGroup and self.masqueData then
+			-- Store original targets for Border/QuestBorder from masqueData
+			local originalBorderTarget = self.masqueData.Border
+			local originalQuestBorderTarget = self.masqueData.QuestBorder
+
+			if isJunkItem then
+				-- For JUNK items, tell Masque to skin the DECOY for Border/QuestBorder layers.
+				-- This leaves self.IconQuestTexture for AdiBags' original solid gray junk border.
+				print(("%s: [MasqueHook_V8_JunkDecoy] ItemID %s is JUNK. Setting Border/QuestBorder in masqueData to DECOY."):format(buttonName, tostring(self.itemId)))
+				self.masqueData.Border = decoyTextureForBorderLayers
+				self.masqueData.QuestBorder = decoyTextureForBorderLayers
+			else
+				-- For NON-JUNK items, ensure Border/QuestBorder point to self.IconQuestTexture
+				-- so Masque can apply its texture, and we can then recolor.
+				self.masqueData.Border = self.IconQuestTexture
+				self.masqueData.QuestBorder = self.IconQuestTexture
+			end
+
 			self.masqueGroup:RemoveButton(self)
 			self.masqueGroup:AddButton(self, self.masqueData)
-			-- Masque (Caith) has now applied its skin to IconQuestTexture.
-			-- Texture is Caith's, Color is Caith's gold (unless changed by group options).
-			-- Masque also sets visibility based on its layer definition.
+			-- Masque has now processed the button based on the (potentially modified) masqueData.
 
-			if borderCategory == "QUALITY" or borderCategory == "JUNK" or borderCategory == "COMMON" then
-				-- For Quality, Junk, AND Common items, we apply AdiBags' (or our common) color choice.
-				-- This uses the Caith texture but with our specific color.
-				print(("%s: [MasqueHook_V7.1_Recolor] ItemID %s, Category %s. Applying RGBA %.2f,%.2f,%.2f,%.2f to Caith texture."):format(buttonName, tostring(self.itemId), borderCategory, r_override, g_override, b_override, a_override))
+			-- Restore original masqueData targets if they were changed for junk (important for next update of same button if it's no longer junk)
+			self.masqueData.Border = originalBorderTarget
+			self.masqueData.QuestBorder = originalQuestBorderTarget
+
+			-- Now, apply post-Masque adjustments
+			if isJunkItem then
+				-- AdiBags' UpdateBorder already set IconQuestTexture to solid gray and showed it.
+				-- Masque should not have touched it because Border/QuestBorder were decoyed.
+				print(("%s: [MasqueHook_V8_JunkFinal] ItemID %s. AdiBags solid gray border should be visible."):format(buttonName, tostring(self.itemId)))
+				-- Ensure it's shown, as AdiBags' UpdateBorder would have done this.
+				iqTex:Show()
+			elseif borderCategory == "QUALITY" or borderCategory == "COMMON" then
+				-- Quality or Common items: Use Caith texture, apply specific color override.
+				print(("%s: [MasqueHook_V8_Recolor] ItemID %s, Category %s. Applying RGBA %.2f,%.2f,%.2f,%.2f to Caith texture."):format(buttonName, tostring(self.itemId), borderCategory, r_override, g_override, b_override, a_override))
 				iqTex:SetVertexColor(r_override, g_override, b_override, a_override)
 				iqTex:Show()
 			elseif borderCategory == "QUEST" then
-				-- Quest Items: Let Masque Caith's gold color (already applied by AddButton) persist. Ensure it's shown.
-				print(("%s: [MasqueHook_V7.1_QuestItem] ItemID %s. Ensuring Caith quest border is visible (Gold)."):format(buttonName, tostring(self.itemId)))
+				-- Quest Items: Use Caith texture, Caith gold color. Ensure shown.
+				print(("%s: [MasqueHook_V8_QuestItem] ItemID %s. Ensuring Caith quest border (gold) is visible."):format(buttonName, tostring(self.itemId)))
 				iqTex:Show()
-			else -- borderCategory == "EMPTY" or any other unhandled case
-				print(("%s: [MasqueHook_V7.1_Hide] ItemID %s, Category %s. Hiding IconQuestTexture."):format(buttonName, tostring(self.itemId or "NO_ITEM"), borderCategory))
+			elseif borderCategory == "EMPTY" then
+				print(("%s: [MasqueHook_V8_EmptySlot] No item, ensuring IQTex is hidden."):format(buttonName, tostring(self.itemId or "NO_ITEM")))
 				iqTex:Hide()
 			end
 
@@ -552,10 +568,9 @@ if Masque then
 				iqTex:SetDrawLayer("OVERLAY", 7)
 			end
 
-			-- Final state print (can be commented out once behavior is confirmed)
-			-- local faR,faG,faB,faA = iqTex:GetVertexColor()
-			-- local faTex = iqTex:GetTexture() or "NIL"; if type(faTex) == "number" then faTex = "SOLID_COLOR_AS_TEX" end
-			-- print(("%s: [MasqueHook_V7.1_FinalState] IQTex: Shown=%s, Tex=%s, RGBA=%.2f,%.2f,%.2f,%.2f"):format(buttonName, tostring(iqTex:IsShown()), faTex, faR,faG,faB,faA))
+			local faR,faG,faB,faA = iqTex:GetVertexColor()
+			local faTex = iqTex:GetTexture() or "NIL"; if type(faTex) == "number" then faTex = "SOLID_COLOR_AS_TEX" end
+			print(("%s: [MasqueHook_V8_FinalState] IQTex: Shown=%s, Tex=%s, RGBA=%.2f,%.2f,%.2f,%.2f"):format(buttonName, tostring(iqTex:IsShown()), faTex, faR,faG,faB,faA))
 		else
 			print(buttonName .. ": [MasqueHook_UpdateBorder] Masque group or masqueData missing.")
 		end
@@ -563,7 +578,7 @@ if Masque then
 
 	buttonProto.masqueGroup = Masque:Group(addonName, addon.L["Backpack button"])
 	bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
-	print("AdiBags: Masque support V7.1 (Common items get specific transparent gray border).")
+	print("AdiBags: Masque support V8 (Junk items use AdiBags border, others Hijack/Recolor).")
 end
 
 --------------------------------------------------------------------------------
