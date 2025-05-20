@@ -278,6 +278,7 @@ function buttonProto:Update()
 	else
 		if Masque then
 			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
+			icon:SetTexture(nil)
 		else
 			icon:SetTexture([[Interface\BUTTONS\UI-EmptySlot]])
 			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
@@ -392,8 +393,13 @@ function buttonProto:UpdateBorder(isolatedEvent)
 				texture, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14/64, 49/64, 15/64, 50/64
 				blendMode = "ADD"
 			elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-				local v = 1 - 0.5 * addon.db.profile.qualityOpacity
-				texture, blendMode, r, g, b = true, "MOD", v, v, v
+				if Masque then -- <<<< ADD THIS IF CONDITION
+					texture = nil -- Tell AdiBags to do nothing with the border for junk if Masque is on
+				else
+					-- Original AdiBags junk border logic (only if Masque is NOT active)
+					local v = 1 - 0.5 * addon.db.profile.qualityOpacity
+					texture, blendMode, r, g, b = true, "MOD", v, v, v
+				end -- <<<< END IF
 			end
 		end
 		if texture then
@@ -425,31 +431,103 @@ end
 --------------------------------------------------------------------------------
 
 if Masque then
+	-- 1px transparent frame for dummy texture (YOURS)
+	local dummyFrame = CreateFrame("Frame", "AdiBagsMasqueDummy", UIParent)
+	dummyFrame:SetSize(1, 1); dummyFrame:SetAlpha(0)
+	local dummyTex = dummyFrame:CreateTexture(nil, "OVERLAY")
+	dummyTex:SetAllPoints(dummyFrame); dummyTex:SetAlpha(0)
+
+	-- 1) Prepare the data Masque expects for every button (YOURS)
 	hooksecurefunc(buttonProto, "OnCreate", function(self)
 		self.masqueData = {
-			FloatingBG = false,
-			Icon = self.IconTexture,
-			Cooldown = self.Cooldown,
-			Flash = false,
-			Pushed = false,
-			Normal = self.NormalTexture,
-			Disabled = false,
-			Checked = false,
-			Border = self.IconQuestTexture,
-			AutoCastable = false,
-			--Highlight = false,
-			HotKey = self.Stock,
-			Count = self.Count,
-			Name = false,
-			Duration = false,
-			AutoCast = false,
+			Icon        = self.IconTexture,
+			Cooldown    = self.Cooldown,
+			Normal      = self.NormalTexture,
+			Border      = self.IconQuestTexture,
+			QuestBorder = self.IconQuestTexture,
+			HotKey      = self.Stock,
+			Count       = self.Count,
 		}
 	end)
+
+	-- 2) Re-skin each time AdiBags updates the border
 	hooksecurefunc(buttonProto, "UpdateBorder", function(self)
-		self.masqueGroup:RemoveButton(self)
-		self.masqueGroup:AddButton(self, self.masqueData)
+		local iqTex    = self.IconQuestTexture
+		local icon     = self.IconTexture
+		local isJunk   = false
+		local quality, isQuest
+
+		if self.hasItem then
+			local _, _, q = GetItemInfo(self.itemId); quality = q
+			local questItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
+			if addon.db.profile.questIndicator and (questItem or questId) then
+				isQuest = true
+			end
+			if quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+				isJunk = true
+			end
+		end
+
+		local originalMasqueBorderTarget = self.masqueData.Border -- Store original before potentially changing for junk
+		if isJunk then
+			self.masqueData.Border      = iqTex -- Masque skins the real border for junk
+			self.masqueData.QuestBorder = iqTex -- Masque skins the real border for junk
+		else
+			self.masqueData.Border      = iqTex
+			self.masqueData.QuestBorder = iqTex
+		end
+
+		-- Re-register so Masque reapplies its skin
+		if self.masqueGroup and self.masqueGroup.AddButton then
+			self.masqueGroup:RemoveButton(self)
+			self.masqueGroup:AddButton(self, self.masqueData)
+		end
+
+		self.masqueData.Border      = originalMasqueBorderTarget
+		self.masqueData.QuestBorder = originalMasqueBorderTarget
+
+
+		-- 2.b) Post-Masque: just force-show the texture if needed
+		-- This section is now carefully split to handle junk separately.
+
+		if isQuest then
+			-- YOUR ORIGINAL LOGIC FOR isQuest (WHEN isJunk IS FALSE)
+			iqTex:SetDrawLayer("OVERLAY", 7)
+			iqTex:Show()
+			icon:SetBlendMode("DISABLE")
+			icon:SetVertexColor(1, 1, 1, 1)
+
+		elseif isJunk then
+			-- 1. Dim the icon
+			icon:SetBlendMode("BLEND")
+			icon:SetVertexColor(1, 1, 1, 0.4)
+			if icon.SetDrawLayer then icon:SetDrawLayer("ARTWORK", 1) end
+
+			-- 2. Border styling
+			iqTex:SetTexture(nil)
+			iqTex:SetVertexColor(0.5, 0.5, 0.5, 0.5)
+			iqTex:SetDrawLayer("OVERLAY", 10)
+			iqTex:Show()
+
+		elseif quality and quality >= ITEM_QUALITY_UNCOMMON then
+			icon:SetBlendMode("DISABLE")
+			icon:SetVertexColor(1, 1, 1, 1)
+			-- YOUR ORIGINAL LOGIC FOR QUALITY ITEMS (WHEN isJunk and isQuest ARE FALSE)
+			local r, g, b = GetItemQualityColor(quality)
+			local qualityOpacityVal = addon.db.profile.qualityOpacity
+			if type(qualityOpacityVal) ~= "number" then qualityOpacityVal = 1 end -- ensure number
+			iqTex:SetVertexColor(r, g, b, qualityOpacityVal)
+			iqTex:SetDrawLayer("OVERLAY", 7)
+			iqTex:Show()
+
+		 else
+			icon:SetBlendMode("DISABLE")
+			icon:SetVertexColor(1, 1, 1, 1)
+		end
 	end)
-	buttonProto.masqueGroup = Masque:Group(addonName, addon.L["Backpack button"])
+
+	-- 3) Masque groups (YOURS)
+	buttonProto.masqueGroup     = Masque:Group(addonName, addon.L["Backpack button"])
 	bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
 end
 
