@@ -468,18 +468,11 @@ if Masque then
 			end
 		end
 
-		-- [[ CHANGE #1 FOR JUNK: Masque Target ]]
-		-- Ensure Masque targets the REAL iqTex for junk items.
-		-- For non-junk items, your original logic of targeting iqTex is maintained.
 		local originalMasqueBorderTarget = self.masqueData.Border -- Store original before potentially changing for junk
 		if isJunk then
 			self.masqueData.Border      = iqTex -- Masque skins the real border for junk
 			self.masqueData.QuestBorder = iqTex -- Masque skins the real border for junk
 		else
-			-- This 'else' branch is your original logic for non-junk items,
-			-- ensuring self.masqueData.Border points to iqTex.
-			-- Since OnCreate already sets it to iqTex, this effectively means
-			-- self.masqueData.Border will be iqTex for non-junk too.
 			self.masqueData.Border      = iqTex
 			self.masqueData.QuestBorder = iqTex
 		end
@@ -490,17 +483,8 @@ if Masque then
 			self.masqueGroup:AddButton(self, self.masqueData)
 		end
 
-		-- Restore for next run - CRITICAL: Restore to what it was BEFORE this specific junk check
-		-- This ensures subsequent non-junk processing in other hooks or contexts sees the right value
-		-- if it was more complex than just iqTex. However, given OnCreate sets it to iqTex,
-		-- and non-junk also sets it to iqTex, this restoration is mainly for conceptual correctness
-		-- if the masqueData could be different. For this specific code, it will always restore to iqTex.
 		self.masqueData.Border      = originalMasqueBorderTarget
 		self.masqueData.QuestBorder = originalMasqueBorderTarget
-		-- If originalMasqueBorderTarget was always iqTex (due to OnCreate and your non-junk path),
-		-- then this is equivalent to:
-		-- self.masqueData.Border      = iqTex
-		-- self.masqueData.QuestBorder = iqTex
 
 
 		-- 2.b) Post-Masque: just force-show the texture if needed
@@ -520,33 +504,10 @@ if Masque then
 			if icon.SetDrawLayer then icon:SetDrawLayer("ARTWORK", 1) end
 
 			-- 2. Border styling
-			--iqTex:SetTexture(nil)
+			iqTex:SetTexture(nil)
 			iqTex:SetVertexColor(0.5, 0.5, 0.5, 0.5)
 			iqTex:SetDrawLayer("OVERLAY", 10)
 			iqTex:Show()
-
-			--for i = 1, self:GetNumRegions() do
-			--	local region = select(i, self:GetRegions())
-			--	if region and region.GetObjectType and region:GetObjectType() == "Texture" then
-			--		local tex = region:GetTexture()
-			--		-- print(string.format("[Tex %d Original] = %s", i, tostring(tex)))
-			--
-			--		if tex then
-			--			-- Normalize backslashes to forward slashes
-			--			local normalizedTex = string.gsub(tex, "\\", "/")
-			--			-- print(string.format("[Tex %d Normalized] = %s", i, tostring(normalizedTex)))
-			--
-			--			-- Now search the normalized string
-			--			if normalizedTex:find("Masque_Caith/Textures/Border", 1, true) then
-			--				print("raised")
-			--				region:SetDrawLayer("OVERLAY", 10)
-			--				print("[+] Raised Masque_Caith Border '" .. tostring(tex) .. "' to OVERLAY/10")
-			--			end
-			--		end
-			--	end
-			--end
-
-
 
 		elseif quality and quality >= ITEM_QUALITY_UNCOMMON then
 			icon:SetBlendMode("DISABLE")
@@ -563,7 +524,6 @@ if Masque then
 			icon:SetBlendMode("DISABLE")
 			icon:SetVertexColor(1, 1, 1, 1)
 		end
-		-- (everything else—common items & empty slots—will now use Masque’s defaults) - YOUR COMMENT
 	end)
 
 	-- 3) Masque groups (YOURS)
