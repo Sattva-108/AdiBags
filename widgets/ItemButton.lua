@@ -458,6 +458,7 @@ end
 -- Masque Support
 --------------------------------------------------------------------------------
 if Masque then
+	-- Decoy setup (only for Normal, as Border/QuestBorder now target IconQuestTexture)
 	local dummyParentFrame = CreateFrame("Frame", "AdiBagsMasqueDummyParentFrame", UIParent)
 	dummyParentFrame:SetSize(1, 1); dummyParentFrame:SetAlpha(0);
 	local dummyMasqueNormalDecoy = dummyParentFrame:CreateTexture("AdiBagsMasqueDummyNormalDecoyTexture", "BACKGROUND")
@@ -470,13 +471,13 @@ if Masque then
 			Cooldown = self.Cooldown,
 			Normal = dummyMasqueNormalDecoy,      -- Keep Normal decoyed to isolate border issue
 			Border = self.IconQuestTexture,      -- << LET MASQUE APPLY ITS BORDER TEXTURE/COLOR
-			QuestBorder = self.IconQuestTexture, -- << ALSO TARGETED BY CAITH (Redundant if Border also handles it, but safe)
+			QuestBorder = self.IconQuestTexture, -- << ALSO TARGETED BY CAITH
 			HotKey = self.Stock, Count = self.Count,
 			FloatingBG = nil, Flash = nil, Pushed = nil, Disabled = nil, Checked = nil,
 			Highlight = nil, Gloss = nil, AutoCastable = nil, AutoCast = nil,
 			IconBorder = nil, Name = nil, Duration = nil,
 		}
-		print(("%s: [Masque_OnCreate] Border & QuestBorder target IconQuestTexture. Normal targets decoy."):format(buttonName))
+		-- print(("%s: [Masque_OnCreate] Border & QuestBorder target IconQuestTexture. Normal targets decoy."):format(buttonName))
 	end)
 
 	hooksecurefunc(buttonProto, "UpdateBorder", function(self)
@@ -484,54 +485,57 @@ if Masque then
 		local buttonName = self:GetName()
 		local iqTex = self.IconQuestTexture
 
-		-- 1. AdiBags' UpdateBorder has ALREADY run and set iqTex to its desired state
-		--    (e.g., green tint on Blizzard border texture).
-		--    We need to capture the color AdiBags INTENDED for the Masque skin's texture.
-		local intendedR, intendedG, intendedB, intendedA = 1,1,1,1 -- Default to white
-		local isApplicableForAdiBagsBorder = false
+		-- Default: assume we won't apply an AdiBags color override
+		local applyAdiBagsColorOverride = false
+		local intendedR, intendedG, intendedB, intendedA = 1,1,1,1 -- Default override color (white)
 
-		if iqTex:IsShown() and self.hasItem then -- Check if AdiBags decided a border should be shown
-			isApplicableForAdiBagsBorder = true
-			-- Re-calculate the intended color based on AdiBags logic
-			-- This is a simplified re-check. A more robust way would be to store
-			-- the intended color from the main UpdateBorder call if possible.
+		if self.hasItem then
 			local isQuest, questId, isActive = GetContainerItemQuestInfo(self.bag, self.slot)
-			if addon.db.profile.questIndicator and (questId and not isActive) then
-				intendedR, intendedG, intendedB, intendedA = 1,1,1,1 -- Quest Bang (texture is colored)
-			elseif addon.db.profile.questIndicator and (questId or isQuest) then
-				intendedR, intendedG, intendedB, intendedA = 1,1,1,1 -- Quest Border (texture is colored)
-			elseif addon.db.profile.qualityHighlight then
+			local isActualQuestItemForBorder = (addon.db.profile.questIndicator and (questId or isQuest))
+
+			if not isActualQuestItemForBorder and addon.db.profile.qualityHighlight then
+				-- This item is NOT a quest item that AdiBags would give a special texture,
+				-- AND quality highlighting is on. So, we want to apply quality color.
 				local _, _, quality = GetItemInfo(self.itemId)
 				if quality and quality >= ITEM_QUALITY_UNCOMMON then
 					intendedR, intendedG, intendedB = GetItemQualityColor(quality)
 					intendedA = addon.db.profile.qualityOpacity
+					applyAdiBagsColorOverride = true
 				elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
 					local v = 1 - (0.5 * addon.db.profile.qualityOpacity)
 					intendedR, intendedG, intendedB, intendedA = v,v,v, addon.db.profile.qualityOpacity
+					applyAdiBagsColorOverride = true -- We want to dim the Masque border
 				end
 			end
+			-- If it's a quest item (isActualQuestItemForBorder is true), applyAdiBagsColorOverride remains false.
+			-- We will let Masque/Caith handle the gold color for its own quest border texture.
+			-- If it's a common/white item, applyAdiBagsColorOverride also remains false.
+			-- We will let Masque/Caith apply its default border (if any) or leave it as is.
 		end
 
-		print(("%s: [MasqueHook_PreAdd] AdiBags Intended RGBA for Masque Border: %.2f,%.2f,%.2f,%.2f (Applicable: %s)"):format(buttonName, intendedR, intendedG, intendedB, intendedA, tostring(isApplicableForAdiBagsBorder)))
+		print(("%s: [MasqueHook_PreAdd] Will AdiBags override color? %s. Intended RGBA (if override): %.2f,%.2f,%.2f,%.2f"):format(buttonName, tostring(applyAdiBagsColorOverride), intendedR, intendedG, intendedB, intendedA))
 
 		if self.masqueGroup and self.masqueData then
 			self.masqueGroup:RemoveButton(self)
-			self.masqueGroup:AddButton(self, self.masqueData) -- Masque applies its skin (Caith border tex + gold color)
+			self.masqueGroup:AddButton(self, self.masqueData) -- Masque applies its skin (Caith texture + Caith color)
 
-			-- 2. NOW, Masque has just skinned iqTex, potentially with Caith texture and GOLD color.
-			--    We will immediately try to override ONLY the color if a border was intended by AdiBags.
-			if isApplicableForAdiBagsBorder then
-				local currentMasqueTexture = iqTex:GetTexture()
-				print(("%s: [MasqueHook_PostAddAttemptRecolor] Masque applied Tex=%s. AdiBags now setting color to %.2f,%.2f,%.2f,%.2f"):format(buttonName, tostring(currentMasqueTexture), intendedR, intendedG, intendedB, intendedA))
-				iqTex:SetVertexColor(intendedR, intendedG, intendedB, intendedA)
-				iqTex:SetDrawLayer("OVERLAY", 7) -- Ensure it's still on top
-				iqTex:Show() -- Ensure it's shown
+			if iqTex:IsShown() then -- Only attempt to recolor if AdiBags decided it should be shown
+				if applyAdiBagsColorOverride then
+					-- Masque has applied its texture and color. We override the color.
+					local currentMasqueTexture = iqTex:GetTexture()
+					print(("%s: [MasqueHook_Recolor] Masque applied Tex=%s. AdiBags OVERRIDING color to %.2f,%.2f,%.2f,%.2f"):format(buttonName, tostring(currentMasqueTexture), intendedR, intendedG, intendedB, intendedA))
+					iqTex:SetVertexColor(intendedR, intendedG, intendedB, intendedA)
+				else
+					-- AdiBags does not want to override the color for this item (e.g., it's a quest item, or a common white item).
+					-- Let Masque/Caith's color (likely gold) persist on the Caith texture.
+					-- Or, if AdiBags hid IconQuestTexture, it should remain hidden unless Masque explicitly shows it.
+					local currentMasqueTexture = iqTex:GetTexture()
+					local curR,curG,curB,curA = iqTex:GetVertexColor()
+					print(("%s: [MasqueHook_NoRecolor] Masque applied Tex=%s, RGBA=%.2f,%.2f,%.2f,%.2f. AdiBags NOT overriding color."):format(buttonName, tostring(currentMasqueTexture),curR,curG,curB,curA ))
+				end
+				iqTex:SetDrawLayer("OVERLAY", 7) -- Re-ensure draw layer
 			else
-				-- If AdiBags didn't want a border, but Masque might have shown one, hide it.
-				-- However, Masque's skin might control visibility based on its own layer properties.
-				-- This line might be redundant or counterproductive depending on skin.
-				-- iqTex:Hide()
-				print(buttonName .. ": [MasqueHook_PostAddAttemptRecolor] AdiBags intended no border, leaving Masque's visibility.")
+				print(buttonName .. ": [MasqueHook_PostAdd] IconQuestTexture is hidden by AdiBags, no color override.")
 			end
 
 			-- Final state print
@@ -546,7 +550,7 @@ if Masque then
 
 	buttonProto.masqueGroup = Masque:Group(addonName, addon.L["Backpack button"])
 	bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
-	print("AdiBags: Masque support initialized for 'Hijack/Recolor' attempt.")
+	print("AdiBags: Masque support initialized for V2 Hijack/Recolor attempt.")
 end
 
 --------------------------------------------------------------------------------
