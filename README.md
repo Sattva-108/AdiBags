@@ -4,12 +4,22 @@
 ![wow_CNgtiMLTXH](https://user-images.githubusercontent.com/74269253/229909788-3782f7b8-a995-4095-b997-37bf895675b6.png)
 
 
-## Download & Installation
+## 📦 Download & Installation
 
-1. **[Download](https://github.com/Sattva-108/AdiBags/archive/refs/heads/main.zip)** **.ZIP** via green `Code` button on top of this page. 
-2. Copy the `AdiBags-main` folder inside the **.ZIP** to `"\Interface\AddOns\"`
-3. Rename the folder to --> **`AdiBags`**
-4. **(!!!)** Make sure the folder name is called exactly **`AdiBags`**
+1. Click the green `Code` button at the top of this page, then select  
+   **[Download ZIP](https://github.com/Sattva-108/AdiBags/archive/refs/heads/main.zip)**
+
+2. Extract the downloaded `.zip` file. You’ll get a folder named:  
+   **`AdiBags-main`**
+
+3. Move the `AdiBags-main` folder into your WoW AddOns directory:  
+   `World of Warcraft\Interface\AddOns\`
+
+4. Rename the folder to exactly:  
+   **`AdiBags`** ← (⚠️ Must match this name exactly — no `-main`, no extra spaces!)
+
+✅ Done! The addon should now appear in your in-game addon list.
+
 - _**(Optional)**_ - Download supported extra-modules for AdiBags - [AdiBags-WoTLK-3.3.5-Mods](https://github.com/Sattva-108/AdiBags-WoTLK-3.3.5-Mods) 
 
 
