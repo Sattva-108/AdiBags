@@ -395,11 +395,6 @@ function buttonProto:UpdateBorder(isolatedEvent)
 			elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
 				local v = 1 - 0.5 * addon.db.profile.qualityOpacity
 				texture, blendMode, r, g, b = true, "MOD", v, v, v
-
-				if Masque then
-					-- Do nothing here: Masque hook will handle icon + border tint
-					texture = nil -- prevent overwriting the Masque border here
-				end
 			end
 		end
 		if texture then
@@ -485,37 +480,15 @@ if Masque then
 		self.masqueData.Border      = iqTex
 		self.masqueData.QuestBorder = iqTex
 
-		local icon  = self.IconTexture
-
-
 		-- 2.b) Post-Masque: just force-show the texture if needed
-		if isQuest then
+		if isQuest or isJunk then
 			iqTex:SetDrawLayer("OVERLAY", 7)
-			iqTex:Show()
-			icon:SetBlendMode("DISABLE")
-			icon:SetVertexColor(1, 1, 1, 1)
-		elseif isJunk then
-			-- 1) icon: alpha-blend for a light fade, not full MOD tint
-			local base = addon.db.profile.qualityOpacity or 1
-			local v    = 1 - 0.25 * base   -- tweak “0.25” to taste (0.2–0.3 is nice)
-
-			icon:SetBlendMode("BLEND")
-			icon:SetVertexColor(1, 1, 1, 0.4)
-			icon:SetDrawLayer("OVERLAY", 7)
-
-			iqTex:SetBlendMode("BLEND")
-			iqTex:SetDrawLayer("BACKGROUND", 7)
 			iqTex:Show()
 		elseif quality and quality >= ITEM_QUALITY_UNCOMMON then
 			local r, g, b = GetItemQualityColor(quality)
 			iqTex:SetVertexColor(r, g, b, addon.db.profile.qualityOpacity)
 			iqTex:SetDrawLayer("OVERLAY", 7)
 			iqTex:Show()
-			icon:SetBlendMode("DISABLE")
-			icon:SetVertexColor(1, 1, 1, 1)
-		else
-			icon:SetBlendMode("DISABLE")
-			icon:SetVertexColor(1, 1, 1, 1)
 		end
 		-- (everything else—common items & empty slots—will now use Masque’s defaults)
 	end)
