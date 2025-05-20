@@ -278,6 +278,7 @@ function buttonProto:Update()
 	else
 		if Masque then
 			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
+			icon:SetTexture(nil)
 		else
 			icon:SetTexture([[Interface\BUTTONS\UI-EmptySlot]])
 			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
@@ -425,15 +426,12 @@ end
 --------------------------------------------------------------------------------
 
 if Masque then
-	-- A fully-transparent, off-screen texture Masque can safely target
-	local dummyFrame  = CreateFrame("Frame", "AdiBagsMasqueDummy", UIParent)
+	-- 1px transparent frame for dummy texture
+	local dummyFrame = CreateFrame("Frame", "AdiBagsMasqueDummy", UIParent)
 	dummyFrame:SetSize(1, 1); dummyFrame:SetAlpha(0)
 
 	local dummyTex = dummyFrame:CreateTexture(nil, "OVERLAY")
 	dummyTex:SetAllPoints(dummyFrame); dummyTex:SetAlpha(0)
-
-	-- Subtle grey tint used for common (white) items when Masque adds its own skin
-	local COMMON_BORDER = { r = 0.55, g = 0.55, b = 0.55, a = 0.45 }
 
 	-- 1) Prepare the data Masque expects for every button
 	hooksecurefunc(buttonProto, "OnCreate", function(self)
@@ -450,13 +448,14 @@ if Masque then
 
 	-- 2) Re-skin each time AdiBags updates the border
 	hooksecurefunc(buttonProto, "UpdateBorder", function(self)
-		local iqTex = self.IconQuestTexture      -- Local alias
-		local isJunk, quality, isQuest = false, nil, false
+		local iqTex    = self.IconQuestTexture
+		local isJunk   = false
+		local quality, isQuest
 
 		if self.hasItem then
 			local _, _, q = GetItemInfo(self.itemId); quality = q
-			local isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
-			if addon.db.profile.questIndicator and (isQuestItem or questId) then
+			local questItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
+			if addon.db.profile.questIndicator and (questItem or questId) then
 				isQuest = true
 			end
 			if quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
@@ -464,7 +463,7 @@ if Masque then
 			end
 		end
 
-		-- 2.a) Tell Masque to ignore the real border for junk so our solid grey texture survives
+		-- 2.a) Tell Masque to ignore the real border for junk items
 		if isJunk then
 			self.masqueData.Border      = dummyTex
 			self.masqueData.QuestBorder = dummyTex
@@ -473,34 +472,25 @@ if Masque then
 			self.masqueData.QuestBorder = iqTex
 		end
 
-		-- Re-register so Masque re-applies its skin
+		-- Re-register so Masque reapplies its skin
 		self.masqueGroup:RemoveButton(self)
 		self.masqueGroup:AddButton(self, self.masqueData)
 
-		-- Restore for next reuse
+		-- Restore for next run
 		self.masqueData.Border      = iqTex
 		self.masqueData.QuestBorder = iqTex
 
-		-- 2.b) Post-Masque adjustments
-		if isJunk then
-			-- Solid grey already set by AdiBags; just force draw layer
+		-- 2.b) Post-Masque: just force-show the texture if needed
+		if isQuest or isJunk then
 			iqTex:SetDrawLayer("OVERLAY", 7)
 			iqTex:Show()
-		elseif isQuest then
-			iqTex:SetDrawLayer("OVERLAY", 7)
-			iqTex:Show()  -- Masque’s gold border is fine; no colour override
 		elseif quality and quality >= ITEM_QUALITY_UNCOMMON then
 			local r, g, b = GetItemQualityColor(quality)
 			iqTex:SetVertexColor(r, g, b, addon.db.profile.qualityOpacity)
 			iqTex:SetDrawLayer("OVERLAY", 7)
 			iqTex:Show()
-		elseif self.hasItem then -- plain common item
-			iqTex:SetVertexColor(COMMON_BORDER.r, COMMON_BORDER.g, COMMON_BORDER.b, COMMON_BORDER.a)
-			iqTex:SetDrawLayer("OVERLAY", 7)
-			iqTex:Show()
-		else -- empty slot
-			iqTex:Hide()
 		end
+		-- (everything else—common items & empty slots—will now use Masque’s defaults)
 	end)
 
 	-- 3) Masque groups (unchanged)
