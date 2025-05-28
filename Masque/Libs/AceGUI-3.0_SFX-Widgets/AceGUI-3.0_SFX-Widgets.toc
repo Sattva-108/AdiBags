@@ -1,0 +1,23 @@
+## Interface: 90100
+## Interface-BCC: 20501
+## Interface-Classic: 11307
+
+## Title: AceGUI-3.0: SFX Widgets
+## Notes: Adds custom widgets to AceGUI-3.0 and AceConfigDialog-3.0.
+## Notes-itIT: Aggiungi widgets personalizzati ad AceGUI-3.0 e AceConfigDialog-3.0.
+## Notes-ruRU: Добавляет настраиваемые виджеты для AceGUI-3.0 и AceConfigDialog-3.0.
+## Notes-zhTW: 新增自訂的小套件到 AceGUI-3.0 和 AceConfigDialog-3.0。
+
+## Version: 1e94a8f
+## Author: StormFX
+## OptionalDeps: Ace3
+
+## X-Category: Library
+## X-Website: https://github.com/SFX-WoW/AceGUI-3.0_SFX-Widgets
+## X-Credits: The Ace3 Team
+## X-Curse-Project-ID: 340803
+## X-Wago-ID: RaN0zvKj
+## X-WoWI-ID: 25658
+
+LibStub\LibStub.lua
+AceGUI-3.0_SFX-Widgets.xml
