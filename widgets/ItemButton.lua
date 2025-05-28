@@ -51,69 +51,69 @@ local buttonClass, buttonProto = addon:NewClass("ItemButton", "Button", "Contain
 local childrenNames = { "Cooldown", "IconTexture", "IconQuestTexture", "Count", "Stock", "NormalTexture" }
 
 function buttonProto:OnCreate()
-	local name = self:GetName()
-	for i, childName in pairs(childrenNames) do
-		self[childName] = _G[name .. childName]
-	end
-	self:RegisterForDrag("LeftButton")
-	self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-	self:SetScript("OnShow", self.OnShow)
-	self:SetScript("OnHide", self.OnHide)
-	self:SetWidth(ITEM_SIZE)
-	self:SetHeight(ITEM_SIZE)
+    local name = self:GetName()
+    for i, childName in pairs(childrenNames) do
+        self[childName] = _G[name .. childName]
+    end
+    self:RegisterForDrag("LeftButton")
+    self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    self:SetScript("OnShow", self.OnShow)
+    self:SetScript("OnHide", self.OnHide)
+    self:SetWidth(ITEM_SIZE)
+    self:SetHeight(ITEM_SIZE)
 end
 
 function buttonProto:OnAcquire(container, bag, slot)
-	self.container = container
-	self.bag = bag
-	self.slot = slot
-	self.stack = nil
-	self:SetParent(addon.itemParentFrames[bag])
-	self:SetID(slot)
-	self:FullUpdate()
+    self.container = container
+    self.bag = bag
+    self.slot = slot
+    self.stack = nil
+    self:SetParent(addon.itemParentFrames[bag])
+    self:SetID(slot)
+    self:FullUpdate()
 end
 
 do
-	local buttonProtoHook = addon:GetClass("ItemButton").prototype
-	local orig_OnAcquire = buttonProtoHook.OnAcquire
+    local buttonProtoHook = addon:GetClass("ItemButton").prototype
+    local orig_OnAcquire = buttonProtoHook.OnAcquire
 
-	function buttonProtoHook:OnAcquire(container, bag, slot)
-		-- 1) vanilla AdiBags acquire
-		orig_OnAcquire(self, container, bag, slot)
+    function buttonProtoHook:OnAcquire(container, bag, slot)
+        -- 1) vanilla AdiBags acquire
+        orig_OnAcquire(self, container, bag, slot)
 
-		-- 2) only if AddOnSkins is present, retrigger OnCreate hooks
-		if IsAddOnLoaded("ElvUI") then
-			-- safely unpack ElvUI (won't error if ElvUI is nil)
-			local E, L, V, P, G = unpack(_G.ElvUI or {})
-			local AS = E and E:GetModule("AddOnSkins", true)
-			if AS then
-				-- this will fire every hooksecurefunc(*, "OnCreate", …)
-				self:OnCreate()
-			end
-		end
-	end
+        -- 2) only if AddOnSkins is present, retrigger OnCreate hooks
+        if IsAddOnLoaded("ElvUI") then
+            -- safely unpack ElvUI (won't error if ElvUI is nil)
+            local E, L, V, P, G = unpack(_G.ElvUI or {})
+            local AS = E and E:GetModule("AddOnSkins", true)
+            if AS then
+                -- this will fire every hooksecurefunc(*, "OnCreate", …)
+                self:OnCreate()
+            end
+        end
+    end
 end
 
 function buttonProto:OnRelease()
-	self:SetSection(nil)
-	self.container = nil
-	self.itemId = nil
-	self.itemLink = nil
-	self.hasItem = nil
-	self.texture = nil
-	self.bagFamily = nil
-	self.stack = nil
-	self.isUpgrade = nil
-	self.isDowngrade = nil
-	self.beingSold = nil
+    self:SetSection(nil)
+    self.container = nil
+    self.itemId = nil
+    self.itemLink = nil
+    self.hasItem = nil
+    self.texture = nil
+    self.bagFamily = nil
+    self.stack = nil
+    self.isUpgrade = nil
+    self.isDowngrade = nil
+    self.beingSold = nil
 end
 
 function buttonProto:ToString()
-	return format("Button-%s-%s", tostring(self.bag), tostring(self.slot))
+    return format("Button-%s-%s", tostring(self.bag), tostring(self.slot))
 end
 
 function buttonProto:IsLocked()
-	return select(3, GetContainerItemInfo(self.bag, self.slot))
+    return select(3, GetContainerItemInfo(self.bag, self.slot))
 end
 
 --------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ local bankButtonClass, bankButtonProto = addon:NewClass("BankItemButton", "ItemB
 bankButtonClass.frameTemplate = "BankItemButtonGenericTemplate"
 
 function bankButtonProto:IsLocked()
-	return IsInventoryItemLocked(BankButtonIDToInvSlotID(self.slot))
+    return IsInventoryItemLocked(BankButtonIDToInvSlotID(self.slot))
 end
 
 --------------------------------------------------------------------------------
@@ -135,18 +135,18 @@ local containerButtonPool = addon:CreatePool(buttonClass)
 local bankButtonPool = addon:CreatePool(bankButtonClass)
 
 function addon:AcquireItemButton(container, bag, slot)
-	if bag == BANK_CONTAINER then
-		return bankButtonPool:Acquire(container, bag, slot)
-	else
-		return containerButtonPool:Acquire(container, bag, slot)
-	end
+    if bag == BANK_CONTAINER then
+        return bankButtonPool:Acquire(container, bag, slot)
+    else
+        return containerButtonPool:Acquire(container, bag, slot)
+    end
 end
 
 -- Pre-spawn a bunch of buttons, when we are out of combat
 -- because buttons created in combat do not work well
 hooksecurefunc(addon, 'OnInitialize', function()
-	addon:Debug('Prespawning buttons')
-	containerButtonPool:PreSpawn(100)
+    addon:Debug('Prespawning buttons')
+    containerButtonPool:PreSpawn(100)
 end)
 
 --------------------------------------------------------------------------------
@@ -154,65 +154,65 @@ end)
 --------------------------------------------------------------------------------
 
 function buttonProto:SetSection(section)
-	local oldSection = self.section
-	if oldSection ~= section then
-		if oldSection then
-			oldSection:RemoveItemButton(self)
-		end
-		self.section = section
-		return true
-	end
+    local oldSection = self.section
+    if oldSection ~= section then
+        if oldSection then
+            oldSection:RemoveItemButton(self)
+        end
+        self.section = section
+        return true
+    end
 end
 
 function buttonProto:GetSection()
-	return self.section
+    return self.section
 end
 
 function buttonProto:GetItemId()
-	return self.itemId
+    return self.itemId
 end
 
 function buttonProto:GetItemLink()
-	return self.itemLink
+    return self.itemLink
 end
 
 function buttonProto:GetCount()
-	return select(2, GetContainerItemInfo(self.bag, self.slot)) or 0
+    return select(2, GetContainerItemInfo(self.bag, self.slot)) or 0
 end
 
 function buttonProto:GetBagFamily()
-	return self.bagFamily
+    return self.bagFamily
 end
 
 local BANK_BAG_IDS = addon.BAG_IDS.BANK
 function buttonProto:IsBank()
-	return not not BANK_BAG_IDS[self.bag]
+    return not not BANK_BAG_IDS[self.bag]
 end
 
 function buttonProto:IsStack()
-	return false
+    return false
 end
 
 function buttonProto:GetRealButton()
-	return self
+    return self
 end
 
 function buttonProto:SetStack(stack)
-	self.stack = stack
+    self.stack = stack
 end
 
 function buttonProto:GetStack()
-	return self.stack
+    return self.stack
 end
 
 local function SimpleButtonSlotIterator(self, slotId)
-	if not slotId and self.bag and self.slot then
-		return GetSlotId(self.bag, self.slot), self.bag, self.slot, self.itemId, self.stack
-	end
+    if not slotId and self.bag and self.slot then
+        return GetSlotId(self.bag, self.slot), self.bag, self.slot, self.itemId, self.stack
+    end
 end
 
 function buttonProto:IterateSlots()
-	return SimpleButtonSlotIterator, self
+    return SimpleButtonSlotIterator, self
 end
 
 --------------------------------------------------------------------------------
@@ -220,30 +220,30 @@ end
 --------------------------------------------------------------------------------
 
 function buttonProto:OnShow()
-	self:RegisterEvent('BAG_UPDATE_COOLDOWN', 'UpdateCooldown')
-	self:RegisterEvent('ITEM_LOCK_CHANGED', 'UpdateLock')
-	self:RegisterEvent('QUEST_ACCEPTED', 'UpdateBorder')
-	if self.UpdateSearch then
-		self:RegisterEvent('INVENTORY_SEARCH_UPDATE', 'UpdateSearch')
-	end
-	self:RegisterEvent('UNIT_QUEST_LOG_CHANGED')
-	self:RegisterMessage('AdiBags_UpdateAllButtons', 'Update')
-	self:RegisterMessage('AdiBags_GlobalLockChanged', 'UpdateLock')
-	self:FullUpdate()
+    self:RegisterEvent('BAG_UPDATE_COOLDOWN', 'UpdateCooldown')
+    self:RegisterEvent('ITEM_LOCK_CHANGED', 'UpdateLock')
+    self:RegisterEvent('QUEST_ACCEPTED', 'UpdateBorder')
+    if self.UpdateSearch then
+        self:RegisterEvent('INVENTORY_SEARCH_UPDATE', 'UpdateSearch')
+    end
+    self:RegisterEvent('UNIT_QUEST_LOG_CHANGED')
+    self:RegisterMessage('AdiBags_UpdateAllButtons', 'Update')
+    self:RegisterMessage('AdiBags_GlobalLockChanged', 'UpdateLock')
+    self:FullUpdate()
 end
 
 function buttonProto:OnHide()
-	self:UnregisterAllEvents()
-	self:UnregisterAllMessages()
-	if self.hasStackSplit and self.hasStackSplit == 1 then
-		StackSplitFrame:Hide()
-	end
+    self:UnregisterAllEvents()
+    self:UnregisterAllMessages()
+    if self.hasStackSplit and self.hasStackSplit == 1 then
+        StackSplitFrame:Hide()
+    end
 end
 
 function buttonProto:UNIT_QUEST_LOG_CHANGED(event, unit)
-	if unit == "player" then
-		self:UpdateBorder(event)
-	end
+    if unit == "player" then
+        self:UpdateBorder(event)
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -251,189 +251,191 @@ end
 --------------------------------------------------------------------------------
 
 function buttonProto:CanUpdate()
-	if not self:IsVisible() or addon.holdYourBreath then
-		return false
-	end
-	return true
+    if not self:IsVisible() or addon.holdYourBreath then
+        return false
+    end
+    return true
 end
 
 function buttonProto:FullUpdate()
-	local bag, slot = self.bag, self.slot
-	self.itemId = GetContainerItemID(bag, slot)
-	self.itemLink = GetContainerItemLink(bag, slot)
-	self.hasItem = not not self.itemId
-	self.texture = GetContainerItemInfo(bag, slot)
-	self.bagFamily = bag == KEYRING_CONTAINER and 256 or select(2, GetContainerNumFreeSlots(bag))
-	self:Update()
+    local bag, slot = self.bag, self.slot
+    self.itemId = GetContainerItemID(bag, slot)
+    self.itemLink = GetContainerItemLink(bag, slot)
+    self.hasItem = not not self.itemId
+    self.texture = GetContainerItemInfo(bag, slot)
+    self.bagFamily = bag == KEYRING_CONTAINER and 256 or select(2, GetContainerNumFreeSlots(bag))
+    self:Update()
 end
 
 function buttonProto:Update()
-	if not self:CanUpdate() then return end
+    if not self:CanUpdate() then
+        return
+    end
 
-	-- icon & empty-slot handling
-	local icon = self.IconTexture
-	if self.texture then
-		icon:SetTexture(self.texture)
-		icon:SetTexCoord(0, 1, 0, 1)
-	else
-		if Masque then
-			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
-			icon:SetTexture(nil)
-		else
-			icon:SetTexture([[Interface\BUTTONS\UI-EmptySlot]])
-			icon:SetTexCoord(12/64, 51/64, 12/64, 51/64)
-		end
-	end
+    -- icon & empty-slot handling
+    local icon = self.IconTexture
+    if self.texture then
+        icon:SetTexture(self.texture)
+        icon:SetTexCoord(0, 1, 0, 1)
+    else
+        if Masque then
+            icon:SetTexCoord(12 / 64, 51 / 64, 12 / 64, 51 / 64)
+            icon:SetTexture(nil)
+        else
+            icon:SetTexture([[Interface\BUTTONS\UI-EmptySlot]])
+            icon:SetTexCoord(12 / 64, 51 / 64, 12 / 64, 51 / 64)
+        end
+    end
 
-	-- bag-type tag
-	local tag = (not self.itemId or addon.db.profile.showBagType) and addon:GetFamilyTag(self.bagFamily)
-	if tag then
-		self.Stock:SetText(tag)
-		self.Stock:Show()
-	else
-		self.Stock:Hide()
-	end
+    -- bag-type tag
+    local tag = (not self.itemId or addon.db.profile.showBagType) and addon:GetFamilyTag(self.bagFamily)
+    if tag then
+        self.Stock:SetText(tag)
+        self.Stock:Show()
+    else
+        self.Stock:Hide()
+    end
 
-	------------------------------------------------------------
-	-- 1) upgrade‐overlay (lazy create + show/hide)
-	------------------------------------------------------------
-	if self.isUpgrade then
-		if not self.upgradeTexture then
-			local t = self:CreateTexture(nil, "OVERLAY")
-			t:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
-			t:SetPoint("TOPLEFT", self.IconTexture,  10, -2)
-			t:SetSize(18,18)
-			self.upgradeTexture = t
-		end
-		self.upgradeTexture:Show()
-	elseif self.upgradeTexture then
-		self.upgradeTexture:Hide()
-	end
+    ------------------------------------------------------------
+    -- 1) upgrade‐overlay (lazy create + show/hide)
+    ------------------------------------------------------------
+    if self.isUpgrade then
+        if not self.upgradeTexture then
+            local t = self:CreateTexture(nil, "OVERLAY")
+            t:SetTexture([[Interface\AddOns\AdiBags\assets\UpgradeArrow.tga]])
+            t:SetPoint("TOPLEFT", self.IconTexture, 10, -2)
+            t:SetSize(18, 18)
+            self.upgradeTexture = t
+        end
+        self.upgradeTexture:Show()
+    elseif self.upgradeTexture then
+        self.upgradeTexture:Hide()
+    end
 
-	------------------------------------------------------------
-	-- 2) sell‐overlay (lazy create + show/hide)
-	------------------------------------------------------------
-	if self.beingSold then
-		if not self.sellTexture then
-			local t = self:CreateTexture(nil, "OVERLAY")
-			t:SetTexture("Interface\\Buttons\\UI-GroupLoot-Coin-Up.blp")
-			t:SetPoint("TOPRIGHT", self.IconTexture, -10, -1)
-			t:SetSize(18,18)
-			self.sellTexture = t
-		end
-		self.sellTexture:Show()
-	elseif self.sellTexture then
-		self.sellTexture:Hide()
-	end
+    ------------------------------------------------------------
+    -- 2) sell‐overlay (lazy create + show/hide)
+    ------------------------------------------------------------
+    if self.beingSold then
+        if not self.sellTexture then
+            local t = self:CreateTexture(nil, "OVERLAY")
+            t:SetTexture("Interface\\Buttons\\UI-GroupLoot-Coin-Up.blp")
+            t:SetPoint("TOPRIGHT", self.IconTexture, -10, -1)
+            t:SetSize(18, 18)
+            self.sellTexture = t
+        end
+        self.sellTexture:Show()
+    elseif self.sellTexture then
+        self.sellTexture:Hide()
+    end
 
-	-- the rest of your existing update chain
-	self:UpdateCount()
-	self:UpdateBorder()
-	self:UpdateCooldown()
-	self:UpdateLock()
-	if self.UpdateSearch then
-		self:UpdateSearch()
-	end
+    -- the rest of your existing update chain
+    self:UpdateCount()
+    self:UpdateBorder()
+    self:UpdateCooldown()
+    self:UpdateLock()
+    if self.UpdateSearch then
+        self:UpdateSearch()
+    end
 
-	addon:SendMessage("AdiBags_UpdateButton", self)
+    addon:SendMessage("AdiBags_UpdateButton", self)
 end
 
 function buttonProto:UpdateCount()
-	local count = self:GetCount() or 0
-	self.count = count
-	if count > 1 then
-		self.Count:SetText(count)
-		self.Count:Show()
-	else
-		self.Count:Hide()
-	end
+    local count = self:GetCount() or 0
+    self.count = count
+    if count > 1 then
+        self.Count:SetText(count)
+        self.Count:Show()
+    else
+        self.Count:Hide()
+    end
 end
 
 function buttonProto:UpdateLock(isolatedEvent)
-	if addon.globalLock then
-		SetItemButtonDesaturated(self, true)
-		self:Disable()
-	else
-		self:Enable()
-		SetItemButtonDesaturated(self, self:IsLocked())
-	end
-	if isolatedEvent then
-		addon:SendMessage('AdiBags_UpdateLock', self)
-	end
+    if addon.globalLock then
+        SetItemButtonDesaturated(self, true)
+        self:Disable()
+    else
+        self:Enable()
+        SetItemButtonDesaturated(self, self:IsLocked())
+    end
+    if isolatedEvent then
+        addon:SendMessage('AdiBags_UpdateLock', self)
+    end
 end
 
 if select(4, GetBuildInfo()) == 40300 then
-	function buttonProto:UpdateSearch()
-		local _, _, _, _, _, _, _, isFiltered = GetContainerItemInfo(self.bag, self.slot)
-		if isFiltered then
-			self.searchOverlay:Show();
-		else
-			self.searchOverlay:Hide();
-		end
-	end
+    function buttonProto:UpdateSearch()
+        local _, _, _, _, _, _, _, isFiltered = GetContainerItemInfo(self.bag, self.slot)
+        if isFiltered then
+            self.searchOverlay:Show();
+        else
+            self.searchOverlay:Hide();
+        end
+    end
 end
 
 function buttonProto:UpdateCooldown()
-	return ContainerFrame_UpdateCooldown(self.bag, self)
+    return ContainerFrame_UpdateCooldown(self.bag, self)
 end
 
 function buttonProto:UpdateBorder(isolatedEvent)
-	local isMasqueHandlingBorder = Masque and self.masqueGroup and self.masqueData and self.masqueData.Border == self.IconQuestTexture
+    local isMasqueHandlingBorder = Masque and self.masqueGroup and self.masqueData and self.masqueData.Border == self.IconQuestTexture
 
-	if isMasqueHandlingBorder then
-		if isolatedEvent then
-			addon:SendMessage('AdiBags_UpdateBorder', self)
-		end
-		return -- ВАЖНО: Выходим, чтобы AdiBags не рисовал свою рамку
-	end
+    if isMasqueHandlingBorder then
+        if isolatedEvent then
+            addon:SendMessage('AdiBags_UpdateBorder', self)
+        end
+        return -- ВАЖНО: Выходим, чтобы AdiBags не рисовал свою рамку
+    end
 
-	-- Код ниже выполняется ТОЛЬКО ЕСЛИ isMasqueHandlingBorder == false
-	if self.hasItem then
-		local textureToSet, r, g, b, a, x1, x2, y1, y2, blendModeToSet = nil, 1, 1, 1, 1, 0, 1, 0, 1, "BLEND"
-		local isQuestItem, questId, isActive = GetContainerItemQuestInfo(self.bag, self.slot)
+    -- Код ниже выполняется ТОЛЬКО ЕСЛИ isMasqueHandlingBorder == false
+    if self.hasItem then
+        local textureToSet, r, g, b, a, x1, x2, y1, y2, blendModeToSet = nil, 1, 1, 1, 1, 0, 1, 0, 1, "BLEND"
+        local isQuestItem, questId, isActive = GetContainerItemQuestInfo(self.bag, self.slot)
 
-		if addon.db.profile.questIndicator and (questId and not isActive) then
-			textureToSet = TEXTURE_ITEM_QUEST_BANG
-			blendModeToSet = "BLEND"
-		elseif addon.db.profile.questIndicator and (questId or isQuestItem) then
-			textureToSet = TEXTURE_ITEM_QUEST_BORDER
-			blendModeToSet = "BLEND"
-		elseif addon.db.profile.qualityHighlight then
-			local _, _, quality = GetItemInfo(self.itemId)
-			if quality and quality >= ITEM_QUALITY_UNCOMMON then
-				r, g, b = GetItemQualityColor(quality)
-				a = addon.db.profile.qualityOpacity
-				textureToSet, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14/64, 49/64, 15/64, 50/64
-				blendModeToSet = "BLEND"
-			elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-				local v = 1 - 0.5 * addon.db.profile.qualityOpacity
-				textureToSet, blendModeToSet, r, g, b = true, "BLEND", v, v, v
-			end
-		end
+        if addon.db.profile.questIndicator and (questId and not isActive) then
+            textureToSet = TEXTURE_ITEM_QUEST_BANG
+            blendModeToSet = "BLEND"
+        elseif addon.db.profile.questIndicator and (questId or isQuestItem) then
+            textureToSet = TEXTURE_ITEM_QUEST_BORDER
+            blendModeToSet = "BLEND"
+        elseif addon.db.profile.qualityHighlight then
+            local _, _, quality = GetItemInfo(self.itemId)
+            if quality and quality >= ITEM_QUALITY_UNCOMMON then
+                r, g, b = GetItemQualityColor(quality)
+                a = addon.db.profile.qualityOpacity
+                textureToSet, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14 / 64, 49 / 64, 15 / 64, 50 / 64
+                blendModeToSet = "BLEND"
+            elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+                local v = 1 - 0.5 * addon.db.profile.qualityOpacity
+                textureToSet, blendModeToSet, r, g, b = true, "BLEND", v, v, v
+            end
+        end
 
-		if textureToSet then
-			local border = self.IconQuestTexture
-			if textureToSet == true then
-				border:SetVertexColor(1, 1, 1, 1)
-				border:SetTexture(r, g, b, a)
-			else
-				border:SetTexture(textureToSet)
-				border:SetVertexColor(r, g, b, a)
-			end
-			border:SetTexCoord(x1, x2, y1, y2)
-			border:SetBlendMode(blendModeToSet)
-			border:Show()
-			if isolatedEvent then
-				addon:SendMessage('AdiBags_UpdateBorder', self)
-			end
-			return
-		end
-	end
+        if textureToSet then
+            local border = self.IconQuestTexture
+            if textureToSet == true then
+                border:SetVertexColor(1, 1, 1, 1)
+                border:SetTexture(r, g, b, a)
+            else
+                border:SetTexture(textureToSet)
+                border:SetVertexColor(r, g, b, a)
+            end
+            border:SetTexCoord(x1, x2, y1, y2)
+            border:SetBlendMode(blendModeToSet)
+            border:Show()
+            if isolatedEvent then
+                addon:SendMessage('AdiBags_UpdateBorder', self)
+            end
+            return
+        end
+    end
 
-	self.IconQuestTexture:Hide()
-	if isolatedEvent then
-		addon:SendMessage('AdiBags_UpdateBorder', self)
-	end
+    self.IconQuestTexture:Hide()
+    if isolatedEvent then
+        addon:SendMessage('AdiBags_UpdateBorder', self)
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -464,143 +466,228 @@ end
 -- Masque Support
 --------------------------------------------------------------------------------
 
+-- Assume 'addon', 'addonName', 'buttonProto', 'bankButtonProto', 'Masque', etc. are defined above.
+-- Assume TEXTURE_ITEM_QUEST_BANG, ITEM_QUALITY_*, etc., are defined.
+
 if Masque then
-	local function DebugPrint(prefix, button, ...)
-		local buttonName = "Button N/A"
-		if button then
-			if button.itemId and GetItemInfo(button.itemId) then
-				buttonName = format("Item: %s [ID: %d], Bag: %d, Slot: %d", GetItemInfo(button.itemId) or "Unknown", button.itemId, button.bag, button.slot)
-			elseif button.bag and button.slot then
-				buttonName = format("Button Bag: %d, Slot: %d", button.bag or -1, button.slot or -1)
-			end
-		end
-		print(format("%s (%s):", prefix or "AdiBagsMasque", buttonName), ...)
-	end
+    local function DebugPrint(prefix, button, ...)
+        local buttonName = "Button N/A"
+        if button then
+            if button.itemId and GetItemInfo(button.itemId) then
+                buttonName = format("Item: %s [ID: %d], Bag: %d, Slot: %d", GetItemInfo(button.itemId) or "Unknown", button.itemId, button.bag, button.slot)
+            elseif button.bag and button.slot then
+                buttonName = format("Button Bag: %d, Slot: %d", button.bag or -1, button.slot or -1)
+            end
+        end
+        print(format("%s (%s):", prefix or "AdiBagsMasque", buttonName), ...)
+    end
 
-	hooksecurefunc(buttonProto, "OnCreate", function(self)
-		self.masqueData = {
-			Icon        = self.IconTexture,
-			Cooldown    = self.Cooldown,
-			Normal      = self.NormalTexture,
-			Border      = self.IconQuestTexture,
-			QuestBorder = self.IconQuestTexture,
-			HotKey      = self.Stock,
-			Count       = self.Count,
-		}
-	end)
+    hooksecurefunc(buttonProto, "OnCreate", function(self)
+        self.masqueData = {
+            Icon = self.IconTexture,
+            Cooldown = self.Cooldown,
+            Normal = self.NormalTexture,
+            Border = self.IconQuestTexture,
+            QuestBorder = self.IconQuestTexture,
+            HotKey = self.Stock,
+            Count = self.Count,
+        }
+    end)
 
-	hooksecurefunc(buttonProto, "UpdateBorder", function(self)
-		if not (self.masqueGroup and self.masqueGroup.AddButton) then
-			return
-		end
+    hooksecurefunc(buttonProto, "UpdateBorder", function(self)
+        if not (self.masqueGroup and self.masqueGroup.AddButton) then
+            return
+        end
 
-		if self.masqueGroup.RemoveButton then self.masqueGroup:RemoveButton(self) end
-		self.masqueGroup:AddButton(self, self.masqueData)
+        -- If the group is disabled, Masque might have already unskinned the button.
+        -- We might not want to re-add it to a disabled Masque group here,
+        -- or AddButton might behave differently/error.
+        -- However, if UpdateBorder is also your general "refresh visual" function,
+        -- you might still want the coloring logic below to run.
+        if not self.masqueGroup.db.Disabled then
+            -- Only interact with Masque if group is enabled
+            if self.masqueGroup.RemoveButton then
+                self.masqueGroup:RemoveButton(self)
+            end
+            self.masqueGroup:AddButton(self, self.masqueData)
+        end
 
-		local iqTex = self.IconQuestTexture
-		local iqTexPath = iqTex:GetTexture()
-		local isAdiBagsQuestBang = (iqTexPath == TEXTURE_ITEM_QUEST_BANG)
-		local isAdiBagsDefaultBorder = (iqTexPath == [[Interface\ContainerFrame\UI-Icon-QuestBorder]] or iqTexPath == [[Interface\Buttons\UI-ActionButton-Border]])
+        local iqTex = self.IconQuestTexture
+        local iqTexPath = iqTex:GetTexture()
+        local isAdiBagsQuestBang = (iqTexPath == TEXTURE_ITEM_QUEST_BANG)
+        local isAdiBagsDefaultBorder = (iqTexPath == [[Interface\ContainerFrame\UI-Icon-QuestBorder]] or iqTexPath == [[Interface\Buttons\UI-ActionButton-Border]])
 
-		if iqTex:IsShown() and isAdiBagsDefaultBorder and not isAdiBagsQuestBang then
-			DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags default border:", iqTexPath, ". HIDING it.")
-			iqTex:Hide()
-		elseif iqTex:IsShown() and isAdiBagsQuestBang then
-			DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags Quest Bang, leaving as is.")
-		end
+        if iqTex:IsShown() and isAdiBagsDefaultBorder and not isAdiBagsQuestBang then
+            DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags default border:", iqTexPath, ". HIDING it.")
+            iqTex:Hide()
+        elseif iqTex:IsShown() and isAdiBagsQuestBang then
+            DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags Quest Bang, leaving as is.")
+        else
+            if iqTex then
+                iqTex:Hide()
+            end
+        end
 
-		local masqueNormalRegionToColor = nil
-		if self.__MSQ_Regions and self.__MSQ_Regions.Normal then
-			masqueNormalRegionToColor = self.__MSQ_Regions.Normal
-			DebugPrint("MasqueHook", self, "Found Masque Normal region via __MSQ_Regions.Normal.")
-		else
-			if self.GetNumRegions then
-				for i = 1, self:GetNumRegions() do
-					local region = select(i, self:GetRegions())
-					if region and region.IsObjectType and region:IsObjectType("Texture") then
-						local texPath = region:GetTexture()
-						if texPath and texPath:find("Masque_") and texPath:find("Normal", 1, true) then
-							masqueNormalRegionToColor = region
-							DebugPrint("MasqueHook", self, "Found Masque 'Normal' texture region by generic Masque_ prefix and 'Normal' in path:", texPath)
-							break
-						end
-					end
-				end
-			end
-		end
+        local masqueNormalRegionToColor = nil
+        -- Check if group is disabled; if so, __MSQ_Regions might be nilled by Masque
+        if not (self.masqueGroup and self.masqueGroup.db.Disabled) and self.__MSQ_Regions and self.__MSQ_Regions.Normal then
+            masqueNormalRegionToColor = self.__MSQ_Regions.Normal
+            DebugPrint("MasqueHook", self, "Found Masque Normal region via __MSQ_Regions.Normal.")
+        elseif not (self.masqueGroup and self.masqueGroup.db.Disabled) then
+            if self.GetNumRegions then
+                for i = 1, self:GetNumRegions() do
+                    local region = select(i, self:GetRegions())
+                    if region and region.IsObjectType and region:IsObjectType("Texture") then
+                        local texPath = region:GetTexture()
+                        if texPath and texPath:find("Masque_") and texPath:find("Normal", 1, true) then
+                            masqueNormalRegionToColor = region
+                            DebugPrint("MasqueHook", self, "Found Masque 'Normal' texture region by generic Masque_ prefix and 'Normal' in path:", texPath)
+                            break
+                        end
+                    end
+                end
+            end
+        end
 
-		if not masqueNormalRegionToColor then
-			DebugPrint("MasqueHook", self, "Generic Masque 'Normal' region NOT FOUND. Cannot apply custom coloring.")
-		end
+        if not (self.masqueGroup and self.masqueGroup.db.Disabled) and not masqueNormalRegionToColor then
+            DebugPrint("MasqueHook", self, "Generic Masque 'Normal' region NOT FOUND (or group disabled). Cannot apply custom coloring.")
+        end
 
-		local itemQuality, isJunkItem, isQuestItem, questId
-		if self.hasItem then
-			_, _, itemQuality = GetItemInfo(self.itemId)
-			isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
-			if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-				isJunkItem = true
-			end
-		end
+        local itemQuality, isJunkItem, isQuestItem, questId
+        if self.hasItem then
+            _, _, itemQuality = GetItemInfo(self.itemId)
+            isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
+            if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+                isJunkItem = true
+            end
+        end
 
-		if masqueNormalRegionToColor then
-			masqueNormalRegionToColor:Show() -- Ensure Masque's Normal region is visible
+        -- If the group is disabled, Masque has already unskinned it.
+        -- Applying custom colors here might re-color parts of an unskinned button,
+        -- which might be desired or undesired.
+        if masqueNormalRegionToColor and not (self.masqueGroup and self.masqueGroup.db.Disabled) then
+            masqueNormalRegionToColor:Show()
 
-			local r, g, b, a
-			local shouldAdiBagsApplyCustomColor = false -- Renamed for clarity
-			local logMessage = ""
+            local r, g, b, a
+            local shouldAdiBagsApplyCustomColor = false
+            local logMessage = ""
 
-			if self.hasItem and (isQuestItem or questId) and not isAdiBagsQuestBang then
-				r, g, b = 0.9, 0.7, 0.2 -- Gold
-				a = addon.db.profile.qualityOpacity or 0.8
-				logMessage = "Applied QUEST (Gold) color"
-				shouldAdiBagsApplyCustomColor = true
-			elseif isJunkItem then
-				r, g, b = 0.5, 0.5, 0.5 -- Grey
-				a = addon.db.profile.qualityOpacity or 0.7
-				logMessage = "Applied JUNK color"
-				shouldAdiBagsApplyCustomColor = true
-			elseif itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
-				r, g, b = GetItemQualityColor(itemQuality)
-				a = addon.db.profile.qualityOpacity
-				if type(a) ~= "number" then a = 1 end
-				logMessage = string.format("Applied QUALITY (Q%d) color", itemQuality)
-				shouldAdiBagsApplyCustomColor = true
-			elseif itemQuality == ITEM_QUALITY_COMMON then
-				logMessage = "COMMON item - AdiBags will NOT call SetVertexColor"
-				shouldAdiBagsApplyCustomColor = false -- Explicitly false
-			else
-				logMessage = "No specific rule - AdiBags will NOT call SetVertexColor"
-				shouldAdiBagsApplyCustomColor = false -- Explicitly false for any other case too
-			end
+            if self.hasItem and (isQuestItem or questId) and not isAdiBagsQuestBang then
+                r, g, b = 0.9, 0.7, 0.2
+                a = addon.db.profile.qualityOpacity or 0.8
+                logMessage = "Applied QUEST (Gold) color"
+                shouldAdiBagsApplyCustomColor = true
+            elseif isJunkItem then
+                r, g, b = 0.5, 0.5, 0.5
+                a = addon.db.profile.qualityOpacity or 0.7
+                logMessage = "Applied JUNK color"
+                shouldAdiBagsApplyCustomColor = true
+            elseif itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
+                r, g, b = GetItemQualityColor(itemQuality)
+                a = addon.db.profile.qualityOpacity
+                if type(a) ~= "number" then
+                    a = 1
+                end
+                logMessage = string.format("Applied QUALITY (Q%d) color", itemQuality)
+                shouldAdiBagsApplyCustomColor = true
+            elseif itemQuality == ITEM_QUALITY_COMMON then
+                logMessage = "COMMON item - AdiBags will NOT call SetVertexColor"
+                shouldAdiBagsApplyCustomColor = false
+            else
+                logMessage = "No specific rule - AdiBags will NOT call SetVertexColor"
+                shouldAdiBagsApplyCustomColor = false
+            end
 
-			if shouldAdiBagsApplyCustomColor then
-				masqueNormalRegionToColor:SetBlendMode("BLEND")
-				masqueNormalRegionToColor:SetVertexColor(r, g, b, a)
-				DebugPrint("MasqueHook", self, logMessage, "to Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
-			else
-				-- For common items or any other case where AdiBags shouldn't color,
-				-- we DO NOT call SetVertexColor on masqueNormalRegionToColor.
-				-- This leaves its appearance entirely up to Masque or its previous state.
-				-- We also do NOT reset it to white here, as per your request.
-				DebugPrint("MasqueHook", self, logMessage, "on Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
-			end
-		end
+            if shouldAdiBagsApplyCustomColor then
+                masqueNormalRegionToColor:SetBlendMode("BLEND")
+                masqueNormalRegionToColor:SetVertexColor(r, g, b, a)
+                DebugPrint("MasqueHook", self, logMessage, "to Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
+            else
+                DebugPrint("MasqueHook", self, logMessage, "on Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
+            end
+        elseif (self.masqueGroup and self.masqueGroup.db.Disabled) then
+            DebugPrint("MasqueHook", self, "Masque group is disabled, AdiBags custom coloring via Masque 'Normal' region skipped.")
+        end
 
-		local icon = self.IconTexture
-		if isAdiBagsQuestBang or (itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and not isJunkItem) or (isQuestItem or questId) then
-			icon:SetBlendMode("DISABLE")
-			icon:SetVertexColor(1, 1, 1, 1)
-		elseif isJunkItem then
-			icon:SetBlendMode("BLEND")
-			icon:SetVertexColor(0.5, 0.5, 0.5, 1)
-		else
-			icon:SetBlendMode("DISABLE")
-			icon:SetVertexColor(1, 1, 1, 1)
-		end
-	end)
+        local icon = self.IconTexture
+        -- When Masque group is disabled, Masque unskins the button.
+        -- The icon color might need to be reset to default if it was previously colored by AdiBags
+        -- and Masque's unskinning doesn't fully cover it.
+        if (self.masqueGroup and self.masqueGroup.db.Disabled) then
+            icon:SetBlendMode("DISABLE") -- Or whatever is appropriate for an unskinned AdiBags icon
+            icon:SetVertexColor(1, 1, 1, 1) -- Reset to default
+            DebugPrint("MasqueHook", self, "Masque group disabled. Resetting icon color/blend.")
+        elseif isAdiBagsQuestBang or (itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and not isJunkItem) or (isQuestItem or questId) then
+            icon:SetBlendMode("DISABLE")
+            icon:SetVertexColor(1, 1, 1, 1)
+        elseif isJunkItem then
+            icon:SetBlendMode("BLEND")
+            icon:SetVertexColor(0.5, 0.5, 0.5, 1)
+        else
+            icon:SetBlendMode("DISABLE")
+            icon:SetVertexColor(1, 1, 1, 1)
+        end
+    end)
 
-	buttonProto.masqueGroup     = Masque:Group(addonName, addon.L["Backpack button"])
-	bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
+    buttonProto.masqueGroup = Masque:Group(addonName, addon.L["Backpack button"])
+    bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
+
+    local function HookMasqueGroupForReskinUpdates(masqueGroupObject)
+        if masqueGroupObject and masqueGroupObject.ReSkin and not masqueGroupObject.AdiBagsReSkinUpdateHooked then
+            hooksecurefunc(masqueGroupObject, "ReSkin", function(self_group)
+                DebugPrint("MasqueReSkin", nil, "Masque group ReSkin triggered for: " .. (self_group.Addon or "N/A") .. ":" .. (self_group.Group or self_group.ID or "N/A") .. ". Re-applying AdiBags borders/colors.")
+                if self_group.Buttons then
+                    for buttonInstance, _ in pairs(self_group.Buttons) do
+                        if buttonInstance and buttonInstance.UpdateBorder and buttonInstance.masqueData then
+                            DebugPrint("MasqueReSkin", buttonInstance, "Calling UpdateBorder for button.")
+                            buttonInstance:UpdateBorder()
+                        end
+                    end
+                end
+            end)
+            masqueGroupObject.AdiBagsReSkinUpdateHooked = true
+        end
+    end
+
+    HookMasqueGroupForReskinUpdates(buttonProto.masqueGroup)
+    HookMasqueGroupForReskinUpdates(bankButtonProto.masqueGroup)
+
+    -- HOOK FOR __Disable STARTS HERE
+    local function HookMasqueGroupForDisable(masqueGroupObject)
+        if masqueGroupObject and masqueGroupObject.__Disable and not masqueGroupObject.AdiBagsDisableHooked then
+            hooksecurefunc(masqueGroupObject, "__Disable", function(self_group, Silent)
+                -- self_group is the Masque group object.
+                -- Masque's __Disable has already run and unskinned buttons.
+                DebugPrint("MasqueDisable", nil, "Masque group __Disable triggered for: " .. (self_group.Addon or "N/A") .. ":" .. (self_group.Group or self_group.ID or "N/A") .. ". AdiBags reacting to disable.")
+                if self_group.Buttons then
+                    for buttonInstance, _ in pairs(self_group.Buttons) do
+                        if buttonInstance and buttonInstance.UpdateBorder and buttonInstance.masqueData then
+                            -- Option 1: Call UpdateBorder, which now needs to be aware of the disabled state.
+                            DebugPrint("MasqueDisable", buttonInstance, "Calling UpdateBorder for button after Masque disable.")
+                            buttonInstance:UpdateBorder()
+
+                            -- Option 2: Or, have specific logic here to reset AdiBags elements
+                            -- if UpdateBorder isn't suitable or if Masque's unskinning isn't complete
+                            -- for AdiBags-specific visuals. For example:
+                            -- if buttonInstance.IconTexture then
+                            --    buttonInstance.IconTexture:SetVertexColor(1,1,1,1)
+                            --    buttonInstance.IconTexture:SetBlendMode("DISABLE") -- Or your default
+                            -- end
+                            -- if buttonInstance.IconQuestTexture and not isAdiBagsQuestBang then
+                            --    buttonInstance.IconQuestTexture:Show() -- Or Hide(), depending on default
+                            -- end
+                        end
+                    end
+                end
+            end)
+            masqueGroupObject.AdiBagsDisableHooked = true -- Mark to prevent double-hooking
+        end
+    end
+
+    HookMasqueGroupForDisable(buttonProto.masqueGroup)
+    HookMasqueGroupForDisable(bankButtonProto.masqueGroup)
+    -- HOOK FOR __Disable ENDS HERE
+
 end
 
 --------------------------------------------------------------------------------
@@ -611,193 +698,197 @@ local stackClass, stackProto = addon:NewClass("StackButton", "Frame", "AceEvent-
 addon:CreatePool(stackClass, "AcquireStackButton")
 
 function stackProto:OnCreate()
-	self:SetWidth(ITEM_SIZE)
-	self:SetHeight(ITEM_SIZE)
-	self.slots = {}
-	self:SetScript('OnShow', self.OnShow)
-	self:SetScript('OnHide', self.OnHide)
-	self.GetCountHook = function()
-		return self.count
-	end
+    self:SetWidth(ITEM_SIZE)
+    self:SetHeight(ITEM_SIZE)
+    self.slots = {}
+    self:SetScript('OnShow', self.OnShow)
+    self:SetScript('OnHide', self.OnHide)
+    self.GetCountHook = function()
+        return self.count
+    end
 end
 
 function stackProto:OnAcquire(container, key)
-	self.container = container
-	self.key = key
-	self.count = 0
-	self.dirtyCount = true
-	self:SetParent(container)
+    self.container = container
+    self.key = key
+    self.count = 0
+    self.dirtyCount = true
+    self:SetParent(container)
 end
 
 function stackProto:OnRelease()
-	self:SetVisibleSlot(nil)
-	self:SetSection(nil)
-	self.key = nil
-	self.container = nil
-	wipe(self.slots)
+    self:SetVisibleSlot(nil)
+    self:SetSection(nil)
+    self.key = nil
+    self.container = nil
+    wipe(self.slots)
 end
 
 function stackProto:GetCount()
-	return self.count
+    return self.count
 end
 
 function stackProto:IsStack()
-	return true
+    return true
 end
 
 function stackProto:GetRealButton()
-	return self.button
+    return self.button
 end
 
 function stackProto:GetKey()
-	return self.key
+    return self.key
 end
 
 function stackProto:UpdateVisibleSlot()
-	local bestLockedId, bestLockedCount
-	local bestUnlockedId, bestUnlockedCount
-	if self.slotId and self.slots[self.slotId] then
-		local _, count, locked = GetContainerItemInfo(GetBagSlotFromId(self.slotId))
-		count = count or 1
-		if locked then
-			bestLockedId, bestLockedCount = self.slotId, count
-		else
-			bestUnlockedId, bestUnlockedCount = self.slotId, count
-		end
-	end
-	for slotId in pairs(self.slots) do
-		local _, count, locked = GetContainerItemInfo(GetBagSlotFromId(slotId))
-		count = count or 1
-		if locked then
-			if not bestLockedId or count > bestLockedCount then
-				bestLockedId, bestLockedCount = slotId, count
-			end
-		else
-			if not bestUnlockedId or count > bestUnlockedCount then
-				bestUnlockedId, bestUnlockedCount = slotId, count
-			end
-		end
-	end
-	return self:SetVisibleSlot(bestUnlockedId or bestLockedId)
+    local bestLockedId, bestLockedCount
+    local bestUnlockedId, bestUnlockedCount
+    if self.slotId and self.slots[self.slotId] then
+        local _, count, locked = GetContainerItemInfo(GetBagSlotFromId(self.slotId))
+        count = count or 1
+        if locked then
+            bestLockedId, bestLockedCount = self.slotId, count
+        else
+            bestUnlockedId, bestUnlockedCount = self.slotId, count
+        end
+    end
+    for slotId in pairs(self.slots) do
+        local _, count, locked = GetContainerItemInfo(GetBagSlotFromId(slotId))
+        count = count or 1
+        if locked then
+            if not bestLockedId or count > bestLockedCount then
+                bestLockedId, bestLockedCount = slotId, count
+            end
+        else
+            if not bestUnlockedId or count > bestUnlockedCount then
+                bestUnlockedId, bestUnlockedCount = slotId, count
+            end
+        end
+    end
+    return self:SetVisibleSlot(bestUnlockedId or bestLockedId)
 end
 
 function stackProto:ITEM_LOCK_CHANGED()
-	return self:Update()
+    return self:Update()
 end
 
 function stackProto:AddSlot(slotId)
-	local slots = self.slots
-	if not slots[slotId] then
-		slots[slotId] = true
-		self.dirtyCount = true
-		self:Update()
-	end
+    local slots = self.slots
+    if not slots[slotId] then
+        slots[slotId] = true
+        self.dirtyCount = true
+        self:Update()
+    end
 end
 
 function stackProto:RemoveSlot(slotId)
-	local slots = self.slots
-	if slots[slotId] then
-		slots[slotId] = nil
-		self.dirtyCount = true
-		self:Update()
-	end
+    local slots = self.slots
+    if slots[slotId] then
+        slots[slotId] = nil
+        self.dirtyCount = true
+        self:Update()
+    end
 end
 
 function stackProto:IsEmpty()
-	return not next(self.slots)
+    return not next(self.slots)
 end
 
 function stackProto:OnShow()
-	self:RegisterMessage('AdiBags_UpdateAllButtons', 'Update')
-	self:RegisterMessage('AdiBags_PostContentUpdate')
-	self:RegisterEvent('ITEM_LOCK_CHANGED')
-	if self.button then
-		self.button:Show()
-	end
-	self:Update()
+    self:RegisterMessage('AdiBags_UpdateAllButtons', 'Update')
+    self:RegisterMessage('AdiBags_PostContentUpdate')
+    self:RegisterEvent('ITEM_LOCK_CHANGED')
+    if self.button then
+        self.button:Show()
+    end
+    self:Update()
 end
 
 function stackProto:OnHide()
-	if self.button then
-		self.button:Hide()
-	end
-	self:UnregisterAllEvents()
-	self:UnregisterAllMessages()
+    if self.button then
+        self.button:Hide()
+    end
+    self:UnregisterAllEvents()
+    self:UnregisterAllMessages()
 end
 
 function stackProto:SetVisibleSlot(slotId)
-	if slotId == self.slotId then return end
-	self.slotId = slotId
-	local button = self.button
-	if button then
-		button.GetCount = nil
-		button:Release()
-	end
-	if slotId then
-		button = addon:AcquireItemButton(self.container, GetBagSlotFromId(slotId))
-		button.GetCount = self.GetCountHook
-		button:SetAllPoints(self)
-		button:SetStack(self)
-		button:Show()
-	else
-		button = nil
-	end
-	self.button = button
-	return true
+    if slotId == self.slotId then
+        return
+    end
+    self.slotId = slotId
+    local button = self.button
+    if button then
+        button.GetCount = nil
+        button:Release()
+    end
+    if slotId then
+        button = addon:AcquireItemButton(self.container, GetBagSlotFromId(slotId))
+        button.GetCount = self.GetCountHook
+        button:SetAllPoints(self)
+        button:SetStack(self)
+        button:Show()
+    else
+        button = nil
+    end
+    self.button = button
+    return true
 end
 
 function stackProto:Update()
-	if not self:CanUpdate() then return end
-	self:UpdateVisibleSlot()
-	self:UpdateCount()
-	if self.button then
-		self.button:Update()
-	end
+    if not self:CanUpdate() then
+        return
+    end
+    self:UpdateVisibleSlot()
+    self:UpdateCount()
+    if self.button then
+        self.button:Update()
+    end
 end
 
 stackProto.FullUpdate = stackProto.Update
 
 function stackProto:UpdateCount()
-	local count = 0
-	for slotId in pairs(self.slots) do
-		count = count + (select(2, GetContainerItemInfo(GetBagSlotFromId(slotId))) or 1)
-	end
-	self.count = count
-	self.dirtyCount = nil
+    local count = 0
+    for slotId in pairs(self.slots) do
+        count = count + (select(2, GetContainerItemInfo(GetBagSlotFromId(slotId))) or 1)
+    end
+    self.count = count
+    self.dirtyCount = nil
 end
 
 function stackProto:AdiBags_PostContentUpdate()
-	if self.dirtyCount then
-		self:UpdateCount()
-	end
+    if self.dirtyCount then
+        self:UpdateCount()
+    end
 end
 
 function stackProto:GetItemId()
-	return self.button and self.button:GetItemId()
+    return self.button and self.button:GetItemId()
 end
 
 function stackProto:GetItemLink()
-	return self.button and self.button:GetItemLink()
+    return self.button and self.button:GetItemLink()
 end
 
 function stackProto:IsBank()
-	return self.button and self.button:IsBank()
+    return self.button and self.button:IsBank()
 end
 
 function stackProto:GetBagFamily()
-	return self.button and self.button:GetBagFamily()
+    return self.button and self.button:GetBagFamily()
 end
 
 local function StackSlotIterator(self, previous)
-	local slotId = next(self.slots, previous)
-	if slotId then
-		local bag, slot = GetBagSlotFromId(slotId)
-		local _, count = GetContainerItemInfo(bag, slot)
-		return slotId, bag, slot, self:GetItemId(), count
-	end
+    local slotId = next(self.slots, previous)
+    if slotId then
+        local bag, slot = GetBagSlotFromId(slotId)
+        local _, count = GetContainerItemInfo(bag, slot)
+        return slotId, bag, slot, self:GetItemId(), count
+    end
 end
 function stackProto:IterateSlots()
-	return StackSlotIterator, self
+    return StackSlotIterator, self
 end
 
 -- Reuse button methods
