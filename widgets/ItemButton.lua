@@ -456,6 +456,14 @@ end
 -- Masque Support
 --------------------------------------------------------------------------------
 
+--------------------------------------------------------------------------------
+-- Masque Support
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Masque Support
+--------------------------------------------------------------------------------
+
 if Masque then
 	local function DebugPrint(prefix, button, ...)
 		local buttonName = "Button N/A"
@@ -469,16 +477,12 @@ if Masque then
 		print(format("%s (%s):", prefix or "AdiBagsMasque", buttonName), ...)
 	end
 
-	-- Убираем переменные для слэш-команды, так как возвращаем функционал
-	-- local lastUpdatedButtonForSlashDebug = nil
-	-- local slashDebugState = { ... }
-
 	hooksecurefunc(buttonProto, "OnCreate", function(self)
 		self.masqueData = {
 			Icon        = self.IconTexture,
 			Cooldown    = self.Cooldown,
-			Normal      = self.NormalTexture,     -- Может использоваться Masque, если он не создает свой "Normal"
-			Border      = self.IconQuestTexture,  -- Говорим Masque использовать это, но он может игнорировать
+			Normal      = self.NormalTexture,
+			Border      = self.IconQuestTexture,
 			QuestBorder = self.IconQuestTexture,
 			HotKey      = self.Stock,
 			Count       = self.Count,
@@ -490,13 +494,9 @@ if Masque then
 			return
 		end
 
-		-- 1. Позволяем Masque применить свой скин.
-		-- Это ВАЖНО, так как Masque должен создать свои регионы ДО того, как мы их ищем.
 		if self.masqueGroup.RemoveButton then self.masqueGroup:RemoveButton(self) end
 		self.masqueGroup:AddButton(self, self.masqueData)
-		-- После этого вызова, Masque должен был создать свои регионы, такие как "Normal".
 
-		-- 2. Принудительно скрываем IconQuestTexture от AdiBags, если она мешает
 		local iqTex = self.IconQuestTexture
 		local iqTexPath = iqTex:GetTexture()
 		local isAdiBagsQuestBang = (iqTexPath == TEXTURE_ITEM_QUEST_BANG)
@@ -509,78 +509,88 @@ if Masque then
 			DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags Quest Bang, leaving as is.")
 		end
 
-		-- 3. Найти регион "Normal" от Masque и попытаться его окрасить
-		local masqueNormalRegion = nil
-		if self.__MSQ_Regions and self.__MSQ_Regions.Normal then -- Идеальный случай
-			masqueNormalRegion = self.__MSQ_Regions.Normal
+		local masqueNormalRegionToColor = nil
+		if self.__MSQ_Regions and self.__MSQ_Regions.Normal then
+			masqueNormalRegionToColor = self.__MSQ_Regions.Normal
 			DebugPrint("MasqueHook", self, "Found Masque Normal region via __MSQ_Regions.Normal.")
 		else
-			-- Пытаемся найти среди дочерних, если __MSQ_Regions нет или там нет Normal
 			if self.GetNumRegions then
 				for i = 1, self:GetNumRegions() do
 					local region = select(i, self:GetRegions())
 					if region and region.IsObjectType and region:IsObjectType("Texture") then
 						local texPath = region:GetTexture()
-						-- ИЩЕМ КОНКРЕТНУЮ ТЕКСТУРУ, КОТОРУЮ ВЫ НАШЛИ:
-						if texPath and texPath:find("Masque_Renaitre") and texPath:find("Normal", 1, true) then
-							masqueNormalRegion = region
-							DebugPrint("MasqueHook", self, "Found Masque Renaitre 'Normal' texture region by path:", texPath)
+						if texPath and texPath:find("Masque_") and texPath:find("Normal", 1, true) then
+							masqueNormalRegionToColor = region
+							DebugPrint("MasqueHook", self, "Found Masque 'Normal' texture region by generic Masque_ prefix and 'Normal' in path:", texPath)
 							break
 						end
-						-- Альтернативно, можно искать по имени, если Masque их именует предсказуемо
-						-- local regionName = region:GetName()
-						-- if regionName and regionName:find("Normal", 1, true) and (regionName:find(self:GetName()) or regionName:find("Masque")) then
-						--    masqueNormalRegion = region
-						--    DebugPrint("MasqueHook", self, "Found Masque 'Normal' like region by name:", regionName)
-						--    break
-						-- end
 					end
 				end
 			end
 		end
 
-		if not masqueNormalRegion then
-			DebugPrint("MasqueHook", self, "Masque 'Normal' region for skin Renaitre NOT FOUND. Cannot color quality.")
+		if not masqueNormalRegionToColor then
+			DebugPrint("MasqueHook", self, "Generic Masque 'Normal' region NOT FOUND. Cannot apply custom coloring.")
 		end
 
-		-- 4. Логика окрашивания (если регион найден)
-		local quality, isJunk
+		local itemQuality, isJunkItem, isQuestItem, questId
 		if self.hasItem then
-			local _, _, q = GetItemInfo(self.itemId); quality = q
-			if quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-				isJunk = true
+			_, _, itemQuality = GetItemInfo(self.itemId)
+			isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
+			if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+				isJunkItem = true
 			end
 		end
 
-		if masqueNormalRegion then
-			masqueNormalRegion:Show() -- Убедимся, что он видим, если вдруг был скрыт
-			if isJunk then
-				local junkR, junkG, junkB = 0.5, 0.5, 0.5
-				local junkA = addon.db.profile.qualityOpacity or 0.7
-				masqueNormalRegion:SetBlendMode("BLEND")
-				masqueNormalRegion:SetVertexColor(junkR, junkG, junkB, junkA)
-				DebugPrint("MasqueHook", self, "Applied JUNK color to Masque Renaitre 'Normal' region.")
-			elseif quality and quality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
-				local r_qual, g_qual, b_qual = GetItemQualityColor(quality)
-				local qualityOpacityVal = addon.db.profile.qualityOpacity
-				if type(qualityOpacityVal) ~= "number" then qualityOpacityVal = 1 end
-				masqueNormalRegion:SetBlendMode("BLEND")
-				masqueNormalRegion:SetVertexColor(r_qual, g_qual, b_qual, qualityOpacityVal)
-				DebugPrint("MasqueHook", self, "Applied QUALITY (Q",quality,") color to Masque Renaitre 'Normal' region.")
+		if masqueNormalRegionToColor then
+			masqueNormalRegionToColor:Show() -- Ensure Masque's Normal region is visible
+
+			local r, g, b, a
+			local shouldAdiBagsApplyCustomColor = false -- Renamed for clarity
+			local logMessage = ""
+
+			if self.hasItem and (isQuestItem or questId) and not isAdiBagsQuestBang then
+				r, g, b = 0.9, 0.7, 0.2 -- Gold
+				a = addon.db.profile.qualityOpacity or 0.8
+				logMessage = "Applied QUEST (Gold) color"
+				shouldAdiBagsApplyCustomColor = true
+			elseif isJunkItem then
+				r, g, b = 0.5, 0.5, 0.5 -- Grey
+				a = addon.db.profile.qualityOpacity or 0.7
+				logMessage = "Applied JUNK color"
+				shouldAdiBagsApplyCustomColor = true
+			elseif itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
+				r, g, b = GetItemQualityColor(itemQuality)
+				a = addon.db.profile.qualityOpacity
+				if type(a) ~= "number" then a = 1 end
+				logMessage = string.format("Applied QUALITY (Q%d) color", itemQuality)
+				shouldAdiBagsApplyCustomColor = true
+			elseif itemQuality == ITEM_QUALITY_COMMON then
+				logMessage = "COMMON item - AdiBags will NOT call SetVertexColor"
+				shouldAdiBagsApplyCustomColor = false -- Explicitly false
 			else
-				-- Сбросить цвет, если нет качества или мусора
-				masqueNormalRegion:SetVertexColor(1, 1, 1, 1) -- Белый цвет, полная непрозрачность (если альфа не задана текстурой)
-				DebugPrint("MasqueHook", self, "Reset color on Masque Renaitre 'Normal' region.")
+				logMessage = "No specific rule - AdiBags will NOT call SetVertexColor"
+				shouldAdiBagsApplyCustomColor = false -- Explicitly false for any other case too
+			end
+
+			if shouldAdiBagsApplyCustomColor then
+				masqueNormalRegionToColor:SetBlendMode("BLEND")
+				masqueNormalRegionToColor:SetVertexColor(r, g, b, a)
+				DebugPrint("MasqueHook", self, logMessage, "to Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
+			else
+				-- For common items or any other case where AdiBags shouldn't color,
+				-- we DO NOT call SetVertexColor on masqueNormalRegionToColor.
+				-- This leaves its appearance entirely up to Masque or its previous state.
+				-- We also do NOT reset it to white here, as per your request.
+				DebugPrint("MasqueHook", self, logMessage, "on Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
 			end
 		end
 
-		-- Обновление иконки (затемнение и т.д.) - оставляем как было
 		local icon = self.IconTexture
-		local isQuestFromIQTex = iqTex:IsShown() and isAdiBagsQuestBang -- Если AdiBags показывает квестовый восклицательный знак
-		if isQuestFromIQTex or (quality and quality >= ITEM_QUALITY_UNCOMMON and not isJunk) then
+		if isAdiBagsQuestBang or (itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and not isJunkItem) or (isQuestItem or questId) then
 			icon:SetBlendMode("DISABLE")
 			icon:SetVertexColor(1, 1, 1, 1)
-		elseif isJunk then
+		elseif isJunkItem then
 			icon:SetBlendMode("BLEND")
 			icon:SetVertexColor(0.5, 0.5, 0.5, 1)
 		else
