@@ -106,6 +106,9 @@ function buttonProto:OnRelease()
     self.isUpgrade = nil
     self.isDowngrade = nil
     self.beingSold = nil
+    -- Сбрасываем флаги Masque при освобождении кнопки
+    self.masqueInitialized = false
+    self.cachedNormalRegion = nil
 end
 
 function buttonProto:ToString()
@@ -380,50 +383,37 @@ function buttonProto:UpdateCooldown()
 end
 
 function buttonProto:UpdateBorder(isolatedEvent)
-    local isMasqueHandlingBorder = Masque and self.masqueGroup and self.masqueData and self.masqueData.Border == self.IconQuestTexture
-
-    if isMasqueHandlingBorder then
-        if isolatedEvent then
-            addon:SendMessage('AdiBags_UpdateBorder', self)
-        end
-        return -- ВАЖНО: Выходим, чтобы AdiBags не рисовал свою рамку
-    end
-
-    -- Код ниже выполняется ТОЛЬКО ЕСЛИ isMasqueHandlingBorder == false
     if self.hasItem then
-        local textureToSet, r, g, b, a, x1, x2, y1, y2, blendModeToSet = nil, 1, 1, 1, 1, 0, 1, 0, 1, "BLEND"
+		local texture, r, g, b, a, x1, x2, y1, y2, blendMode = nil, 1, 1, 1, 1, 0, 1, 0, 1, "BLEND"
         local isQuestItem, questId, isActive = GetContainerItemQuestInfo(self.bag, self.slot)
 
         if addon.db.profile.questIndicator and (questId and not isActive) then
-            textureToSet = TEXTURE_ITEM_QUEST_BANG
-            blendModeToSet = "BLEND"
+			texture = TEXTURE_ITEM_QUEST_BANG
         elseif addon.db.profile.questIndicator and (questId or isQuestItem) then
-            textureToSet = TEXTURE_ITEM_QUEST_BORDER
-            blendModeToSet = "BLEND"
+			texture = TEXTURE_ITEM_QUEST_BORDER
         elseif addon.db.profile.qualityHighlight then
             local _, _, quality = GetItemInfo(self.itemId)
             if quality and quality >= ITEM_QUALITY_UNCOMMON then
                 r, g, b = GetItemQualityColor(quality)
                 a = addon.db.profile.qualityOpacity
-                textureToSet, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14 / 64, 49 / 64, 15 / 64, 50 / 64
-                blendModeToSet = "BLEND"
+				texture, x1, x2, y1, y2 = [[Interface\Buttons\UI-ActionButton-Border]], 14/64, 49/64, 15/64, 50/64
+                blendMode = "ADD"
             elseif quality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
                 local v = 1 - 0.5 * addon.db.profile.qualityOpacity
-                textureToSet, blendModeToSet, r, g, b = true, "BLEND", v, v, v
+				texture, blendMode, r, g, b = true, "MOD", v, v, v
             end
         end
-
-        if textureToSet then
+		if texture then
             local border = self.IconQuestTexture
-            if textureToSet == true then
+			if texture == true then
                 border:SetVertexColor(1, 1, 1, 1)
                 border:SetTexture(r, g, b, a)
             else
-                border:SetTexture(textureToSet)
+				border:SetTexture(texture)
                 border:SetVertexColor(r, g, b, a)
             end
             border:SetTexCoord(x1, x2, y1, y2)
-            border:SetBlendMode(blendModeToSet)
+			border:SetBlendMode(blendMode)
             border:Show()
             if isolatedEvent then
                 addon:SendMessage('AdiBags_UpdateBorder', self)
@@ -442,56 +432,29 @@ end
 -- Masque Support
 --------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Masque Support
---------------------------------------------------------------------------------
-
--- Assume 'addon', 'addonName', 'buttonProto', 'bankButtonProto', 'Masque', etc. are defined above.
--- Assume TEXTURE_ITEM_QUEST_BANG, ITEM_QUALITY_*, etc., are defined.
-
 if Masque then
-    local function DebugPrint(prefix, button, ...)
-        local buttonName = "Button N/A"
-        if button then
-            if button.itemId and GetItemInfo(button.itemId) then
-                buttonName = format("Item: %s [ID: %d], Bag: %d, Slot: %d", GetItemInfo(button.itemId) or "Unknown", button.itemId, button.bag, button.slot)
-            elseif button.bag and button.slot then
-                buttonName = format("Button Bag: %d, Slot: %d", button.bag or -1, button.slot or -1)
-            end
-        end
-        print(format("%s (%s):", prefix or "AdiBagsMasque", buttonName), ...)
-    end
-
     hooksecurefunc(buttonProto, "OnCreate", function(self)
         self.masqueData = {
+            FloatingBG = false,
             Icon = self.IconTexture,
             Cooldown = self.Cooldown,
+            Flash = false,
+            Pushed = false,
             Normal = self.NormalTexture,
+            Disabled = false,
+            Checked = false,
             Border = self.IconQuestTexture,
-            QuestBorder = self.IconQuestTexture,
+            AutoCastable = false,
+            --Highlight = false,
             HotKey = self.Stock,
             Count = self.Count,
+            Name = false,
+            Duration = false,
+            AutoCast = false,
         }
+        -- Флаги для оптимизации
+        self.masqueInitialized = false
+        self.cachedNormalRegion = nil
     end)
 
     hooksecurefunc(buttonProto, "UpdateBorder", function(self)
@@ -499,196 +462,168 @@ if Masque then
             return
         end
 
-        -- If the group is disabled, Masque might have already unskinned the button.
-        -- We might not want to re-add it to a disabled Masque group here,
-        -- or AddButton might behave differently/error.
-        -- However, if UpdateBorder is also your general "refresh visual" function,
-        -- you might still want the coloring logic below to run.
-        if not self.masqueGroup.db.Disabled then
-            -- Only interact with Masque if group is enabled
+        -- Если группа AdiBags отключена в Masque, не выполняем хук
+        if self.masqueGroup.db and self.masqueGroup.db.Disabled then
+            return
+        end
+
+        -- Оптимизация: AddButton только один раз
+        if not self.masqueInitialized then
             if self.masqueGroup.RemoveButton then
                 self.masqueGroup:RemoveButton(self)
             end
             self.masqueGroup:AddButton(self, self.masqueData)
+            self.masqueInitialized = true
         end
 
+        -- Скрываем дефолтную рамку AdiBags когда Masque активен
         local iqTex = self.IconQuestTexture
         local iqTexPath = iqTex:GetTexture()
         local isAdiBagsQuestBang = (iqTexPath == TEXTURE_ITEM_QUEST_BANG)
         local isAdiBagsDefaultBorder = (iqTexPath == [[Interface\ContainerFrame\UI-Icon-QuestBorder]] or iqTexPath == [[Interface\Buttons\UI-ActionButton-Border]])
 
         if iqTex:IsShown() and isAdiBagsDefaultBorder and not isAdiBagsQuestBang then
-            DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags default border:", iqTexPath, ". HIDING it.")
             iqTex:Hide()
         elseif iqTex:IsShown() and isAdiBagsQuestBang then
-            DebugPrint("MasqueHook", self, "IconQuestTexture shows AdiBags Quest Bang, leaving as is.")
+            -- Quest Bang remains visible
         else
             if iqTex then
                 iqTex:Hide()
             end
         end
 
-        local masqueNormalRegionToColor = nil
-        -- Check if group is disabled; if so, __MSQ_Regions might be nilled by Masque
-        if not (self.masqueGroup and self.masqueGroup.db.Disabled) and self.__MSQ_Regions and self.__MSQ_Regions.Normal then
-            masqueNormalRegionToColor = self.__MSQ_Regions.Normal
-            DebugPrint("MasqueHook", self, "Found Masque Normal region via __MSQ_Regions.Normal.")
-        elseif not (self.masqueGroup and self.masqueGroup.db.Disabled) then
-            if self.GetNumRegions then
-                for i = 1, self:GetNumRegions() do
-                    local region = select(i, self:GetRegions())
-                    if region and region.IsObjectType and region:IsObjectType("Texture") then
-                        local texPath = region:GetTexture()
-                        if texPath and texPath:find("Masque_") and texPath:find("Normal", 1, true) then
-                            masqueNormalRegionToColor = region
-                            DebugPrint("MasqueHook", self, "Found Masque 'Normal' texture region by generic Masque_ prefix and 'Normal' in path:", texPath)
-                            break
-                        end
+        -- Находим Normal регион Masque для окрашивания
+        local masqueNormalRegion = self.cachedNormalRegion
+        if not masqueNormalRegion and self.__MSQ_Regions and self.__MSQ_Regions.Normal then
+            masqueNormalRegion = self.__MSQ_Regions.Normal
+            self.cachedNormalRegion = masqueNormalRegion
+        elseif not masqueNormalRegion and self.GetNumRegions then
+            -- Fallback: поиск через GetNumRegions
+            for i = 1, self:GetNumRegions() do
+                local region = select(i, self:GetRegions())
+                if region and region.IsObjectType and region:IsObjectType("Texture") then
+                    local texPath = region:GetTexture()
+                    if texPath and texPath:find("Masque_") and texPath:find("Normal", 1, true) then
+                        masqueNormalRegion = region
+                        self.cachedNormalRegion = masqueNormalRegion
+                        break
                     end
                 end
             end
         end
 
-        if not (self.masqueGroup and self.masqueGroup.db.Disabled) and not masqueNormalRegionToColor then
-            DebugPrint("MasqueHook", self, "Generic Masque 'Normal' region NOT FOUND (or group disabled). Cannot apply custom coloring.")
-        end
+        -- Окрашиваем Normal регион если есть айтем с качеством
+        if masqueNormalRegion and self.hasItem then
+            local _, _, itemQuality = GetItemInfo(self.itemId)
+            local isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
 
-        local itemQuality, isJunkItem, isQuestItem, questId
-        if self.hasItem then
-            _, _, itemQuality = GetItemInfo(self.itemId)
-            isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
-            if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-                isJunkItem = true
-            end
-        end
-
-        -- If the group is disabled, Masque has already unskinned it.
-        -- Applying custom colors here might re-color parts of an unskinned button,
-        -- which might be desired or undesired.
-        if masqueNormalRegionToColor and not (self.masqueGroup and self.masqueGroup.db.Disabled) then
-            masqueNormalRegionToColor:Show()
-
-            local r, g, b, a
-            local shouldAdiBagsApplyCustomColor = false
-            local logMessage = ""
-
-            if self.hasItem and (isQuestItem or questId) and not isAdiBagsQuestBang then
-                r, g, b = 0.9, 0.7, 0.2
-                a = addon.db.profile.qualityOpacity or 0.8
-                logMessage = "Applied QUEST (Gold) color"
-                shouldAdiBagsApplyCustomColor = true
-            elseif isJunkItem then
-                r, g, b = 0.5, 0.5, 0.5
-                a = addon.db.profile.qualityOpacity or 0.7
-                logMessage = "Applied JUNK color"
-                shouldAdiBagsApplyCustomColor = true
+            if (isQuestItem or questId) then
+                -- Золотой цвет для квестовых айтемов
+                masqueNormalRegion:SetVertexColor(0.9, 0.7, 0.2, addon.db.profile.qualityOpacity or 0.8)
+                masqueNormalRegion:SetBlendMode("BLEND")
+                masqueNormalRegion:Show()
+            elseif itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+                -- Серый цвет для junk айтемов
+                masqueNormalRegion:SetVertexColor(0.5, 0.5, 0.5, addon.db.profile.qualityOpacity or 0.7)
+                masqueNormalRegion:SetBlendMode("BLEND")
+                masqueNormalRegion:Show()
             elseif itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
-                r, g, b = GetItemQualityColor(itemQuality)
-                a = addon.db.profile.qualityOpacity
-                if type(a) ~= "number" then
-                    a = 1
-                end
-                logMessage = string.format("Applied QUALITY (Q%d) color", itemQuality)
-                shouldAdiBagsApplyCustomColor = true
-            elseif itemQuality == ITEM_QUALITY_COMMON then
-                logMessage = "COMMON item - AdiBags will NOT call SetVertexColor"
-                shouldAdiBagsApplyCustomColor = false
-            else
-                logMessage = "No specific rule - AdiBags will NOT call SetVertexColor"
-                shouldAdiBagsApplyCustomColor = false
+                -- Цвет по качеству
+                local r, g, b = GetItemQualityColor(itemQuality)
+                masqueNormalRegion:SetVertexColor(r, g, b, addon.db.profile.qualityOpacity or 1)
+                masqueNormalRegion:SetBlendMode("BLEND")
+                masqueNormalRegion:Show()
             end
-
-            if shouldAdiBagsApplyCustomColor then
-                masqueNormalRegionToColor:SetBlendMode("BLEND")
-                masqueNormalRegionToColor:SetVertexColor(r, g, b, a)
-                DebugPrint("MasqueHook", self, logMessage, "to Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
-            else
-                DebugPrint("MasqueHook", self, logMessage, "on Masque 'Normal' region. Texture:", masqueNormalRegionToColor:GetTexture() or "NIL")
-            end
-        elseif (self.masqueGroup and self.masqueGroup.db.Disabled) then
-            DebugPrint("MasqueHook", self, "Masque group is disabled, AdiBags custom coloring via Masque 'Normal' region skipped.")
         end
 
-        local icon = self.IconTexture
-        -- When Masque group is disabled, Masque unskins the button.
-        -- The icon color might need to be reset to default if it was previously colored by AdiBags
-        -- and Masque's unskinning doesn't fully cover it.
-        if (self.masqueGroup and self.masqueGroup.db.Disabled) then
-            icon:SetBlendMode("DISABLE") -- Or whatever is appropriate for an unskinned AdiBags icon
-            icon:SetVertexColor(1, 1, 1, 1) -- Reset to default
-            DebugPrint("MasqueHook", self, "Masque group disabled. Resetting icon color/blend.")
-        elseif isAdiBagsQuestBang or (itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and not isJunkItem) or (isQuestItem or questId) then
-            icon:SetBlendMode("DISABLE")
-            icon:SetVertexColor(1, 1, 1, 1)
-        elseif isJunkItem then
-            icon:SetBlendMode("BLEND")
-            icon:SetVertexColor(0.5, 0.5, 0.5, 1)
+        -- Затемняем иконку для junk айтемов (как в оригинальном AdiBags)
+        if self.hasItem then
+            local _, _, itemQuality = GetItemInfo(self.itemId)
+            if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+                -- Затемняем иконку junk айтема
+                local v = 1 - 0.5 * (addon.db.profile.qualityOpacity or 1)
+                self.IconTexture:SetVertexColor(v, v, v, 1)
+                self.IconTexture:SetBlendMode("BLEND")
+            else
+                -- Сбрасываем иконку в нормальное состояние
+                self.IconTexture:SetVertexColor(1, 1, 1, 1)
+                self.IconTexture:SetBlendMode("DISABLE")
+            end
+        end
+    end)
+
+    -- Отдельный хук для обновления иконок (junk dimming)
+    hooksecurefunc(buttonProto, "Update", function(self)
+        if not (self.masqueGroup and self.masqueGroup.AddButton) then
+            return
+        end
+
+        -- Если группа AdiBags отключена в Masque, не выполняем хук
+        if self.masqueGroup.db and self.masqueGroup.db.Disabled then
+            return
+        end
+
+        -- Затемняем кнопку для junk айтемов через SetAlpha (работает надежнее чем VertexColor)
+        if self.hasItem then
+            local _, _, itemQuality = GetItemInfo(self.itemId)
+            if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
+                -- Затемняем всю кнопку
+                self:SetAlpha(0.5)
+            else
+                -- Сбрасываем прозрачность
+                self:SetAlpha(1)
+            end
         else
-            icon:SetBlendMode("DISABLE")
-            icon:SetVertexColor(1, 1, 1, 1)
+            -- Сбрасываем прозрачность для пустых слотов
+            self:SetAlpha(1)
         end
     end)
 
     buttonProto.masqueGroup = Masque:Group(addonName, addon.L["Backpack button"])
     bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
 
-    local function HookMasqueGroupForReskinUpdates(masqueGroupObject)
-        if masqueGroupObject and masqueGroupObject.ReSkin and not masqueGroupObject.AdiBagsReSkinUpdateHooked then
-            hooksecurefunc(masqueGroupObject, "ReSkin", function(self_group)
-                DebugPrint("MasqueReSkin", nil, "Masque group ReSkin triggered for: " .. (self_group.Addon or "N/A") .. ":" .. (self_group.Group or self_group.ID or "N/A") .. ". Re-applying AdiBags borders/colors.")
+    -- Хук для ReSkin
+    local function HookMasqueReSkin(masqueGroup)
+        if masqueGroup and masqueGroup.ReSkin and not masqueGroup._AdiBagsReSkinHooked then
+            hooksecurefunc(masqueGroup, "ReSkin", function(self_group)
                 if self_group.Buttons then
                     for buttonInstance, _ in pairs(self_group.Buttons) do
-                        if buttonInstance and buttonInstance.UpdateBorder and buttonInstance.masqueData then
-                            DebugPrint("MasqueReSkin", buttonInstance, "Calling UpdateBorder for button.")
+                        if buttonInstance and buttonInstance.UpdateBorder then
+                            buttonInstance.masqueInitialized = false
+                            buttonInstance.cachedNormalRegion = nil
                             buttonInstance:UpdateBorder()
                         end
                     end
                 end
             end)
-            masqueGroupObject.AdiBagsReSkinUpdateHooked = true
+            masqueGroup._AdiBagsReSkinHooked = true
         end
     end
 
-    HookMasqueGroupForReskinUpdates(buttonProto.masqueGroup)
-    HookMasqueGroupForReskinUpdates(bankButtonProto.masqueGroup)
-
-    -- HOOK FOR __Disable STARTS HERE
-    local function HookMasqueGroupForDisable(masqueGroupObject)
-        if masqueGroupObject and masqueGroupObject.__Disable and not masqueGroupObject.AdiBagsDisableHooked then
-            hooksecurefunc(masqueGroupObject, "__Disable", function(self_group, Silent)
-                -- self_group is the Masque group object.
-                -- Masque's __Disable has already run and unskinned buttons.
-                DebugPrint("MasqueDisable", nil, "Masque group __Disable triggered for: " .. (self_group.Addon or "N/A") .. ":" .. (self_group.Group or self_group.ID or "N/A") .. ". AdiBags reacting to disable.")
+    -- Хук для Disable
+    local function HookMasqueDisable(masqueGroup)
+        if masqueGroup and masqueGroup.__Disable and not masqueGroup._AdiBagsDisableHooked then
+            hooksecurefunc(masqueGroup, "__Disable", function(self_group)
                 if self_group.Buttons then
                     for buttonInstance, _ in pairs(self_group.Buttons) do
-                        if buttonInstance and buttonInstance.UpdateBorder and buttonInstance.masqueData then
-                            -- Option 1: Call UpdateBorder, which now needs to be aware of the disabled state.
-                            DebugPrint("MasqueDisable", buttonInstance, "Calling UpdateBorder for button after Masque disable.")
+                        if buttonInstance and buttonInstance.UpdateBorder then
+                            buttonInstance.masqueInitialized = false
+                            buttonInstance.cachedNormalRegion = nil
                             buttonInstance:UpdateBorder()
-
-                            -- Option 2: Or, have specific logic here to reset AdiBags elements
-                            -- if UpdateBorder isn't suitable or if Masque's unskinning isn't complete
-                            -- for AdiBags-specific visuals. For example:
-                            -- if buttonInstance.IconTexture then
-                            --    buttonInstance.IconTexture:SetVertexColor(1,1,1,1)
-                            --    buttonInstance.IconTexture:SetBlendMode("DISABLE") -- Or your default
-                            -- end
-                            -- if buttonInstance.IconQuestTexture and not isAdiBagsQuestBang then
-                            --    buttonInstance.IconQuestTexture:Show() -- Or Hide(), depending on default
-                            -- end
                         end
                     end
                 end
             end)
-            masqueGroupObject.AdiBagsDisableHooked = true -- Mark to prevent double-hooking
+            masqueGroup._AdiBagsDisableHooked = true
         end
     end
 
-    HookMasqueGroupForDisable(buttonProto.masqueGroup)
-    HookMasqueGroupForDisable(bankButtonProto.masqueGroup)
-    -- HOOK FOR __Disable ENDS HERE
-
+    HookMasqueReSkin(buttonProto.masqueGroup)
+    HookMasqueReSkin(bankButtonProto.masqueGroup)
+    HookMasqueDisable(buttonProto.masqueGroup)
+    HookMasqueDisable(bankButtonProto.masqueGroup)
 end
+
 
 --------------------------------------------------------------------------------
 -- Item stack button
