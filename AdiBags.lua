@@ -155,7 +155,7 @@ local DEFAULT_SETTINGS = {
 		scale = 0.8,
 		rowWidth = { ['*'] = 9 },
 		maxHeight = 0.60,
-		clickMode = 0,
+		clickMode = 1,
 		laxOrdering = 1,
 		qualityHighlight = true,
 		qualityOpacity = 1.0,
