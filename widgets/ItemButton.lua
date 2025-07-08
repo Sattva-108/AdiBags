@@ -106,7 +106,7 @@ function buttonProto:OnRelease()
     self.isUpgrade = nil
     self.isDowngrade = nil
     self.beingSold = nil
-    -- Сбрасываем флаги Masque при освобождении кнопки
+    -- Reset Masque flags on button release
     self.masqueInitialized = false
     self.cachedNormalRegion = nil
 end
@@ -452,7 +452,7 @@ if Masque then
             Duration = false,
             AutoCast = false,
         }
-        -- Флаги для оптимизации
+        -- Optimization flags
         self.masqueInitialized = false
         self.cachedNormalRegion = nil
     end)
@@ -462,12 +462,12 @@ if Masque then
             return
         end
 
-        -- Если группа AdiBags отключена в Masque, не выполняем хук
+        -- If the AdiBags group is disabled in Masque, don't run the hook
         if self.masqueGroup.db and self.masqueGroup.db.Disabled then
             return
         end
 
-        -- Оптимизация: AddButton только один раз
+        -- Optimization: AddButton only once
         if not self.masqueInitialized then
             if self.masqueGroup.RemoveButton then
                 self.masqueGroup:RemoveButton(self)
@@ -476,7 +476,7 @@ if Masque then
             self.masqueInitialized = true
         end
 
-        -- Скрываем дефолтную рамку AdiBags когда Masque активен
+        -- Hide the default AdiBags border when Masque is active
         local iqTex = self.IconQuestTexture
         local iqTexPath = iqTex:GetTexture()
         local isAdiBagsQuestBang = (iqTexPath == TEXTURE_ITEM_QUEST_BANG)
@@ -492,21 +492,21 @@ if Masque then
             end
         end
 
-        -- Перекрашиваем Normal-region Masque через публичное API Core.SetNormalColor
-        -- Это избавляет от ручного поиска региона и работает быстрее.
+        -- Recolor the Masque Normal-region via the public API Core.SetNormalColor
+        -- This avoids manual region searching and works faster.
         if self.hasItem then
             local _, _, itemQuality = GetItemInfo(self.itemId)
             local isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
 
             local r, g, b, a
             if (isQuestItem or questId) then
-                -- Золотой цвет для квестовых предметов
+                -- Golden color for quest items
                 r, g, b, a = 0.9, 0.7, 0.2, addon.db.profile.qualityOpacity or 0.8
             elseif itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-                -- Серый цвет для мусора
+                -- Gray color for junk
                 r, g, b, a = 0.5, 0.5, 0.5, addon.db.profile.qualityOpacity or 0.7
             elseif itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
-                -- Цвет по качеству
+                -- Color by quality
                 r, g, b = GetItemQualityColor(itemQuality)
                 a = addon.db.profile.qualityOpacity or 1
             end
@@ -519,62 +519,54 @@ if Masque then
                         normalRegion:SetVertexColor(r, g, b, a)
                         normalRegion:SetBlendMode("BLEND")
                         normalRegion:Show()
-                        -- debug
-                        print("AdiBags Masque: applied color", r, g, b, a, "for", self.itemLink or self.itemId)
                     else
-                        -- Сброс цвета к дефолтному цвету скина
+                        -- Reset color to the skin's default
                         local defaultColor = (self.__MSQ_NormalSkin and self.__MSQ_NormalSkin.Color) or {1,1,1,1}
                         normalRegion:SetVertexColor(defaultColor[1], defaultColor[2], defaultColor[3], defaultColor[4])
-                        -- debug
-                        print("AdiBags Masque: reset to skin color for", self.itemLink or self.itemId)
                     end
-                else
-                    print("AdiBags Masque: Normal region not found for button", tostring(self))
                 end
-            else
-                print("AdiBags Masque: MSQ API not available")
             end
         end
 
-        -- Затемняем иконку для junk айтемов (как в оригинальном AdiBags)
+        -- Dim the icon for junk items (as in the original AdiBags)
         if self.hasItem then
             local _, _, itemQuality = GetItemInfo(self.itemId)
             if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-                -- Затемняем иконку junk айтема
+                -- Dim the junk item icon
                 local v = 1 - 0.5 * (addon.db.profile.qualityOpacity or 1)
                 self.IconTexture:SetVertexColor(v, v, v, 1)
                 self.IconTexture:SetBlendMode("BLEND")
             else
-                -- Сбрасываем иконку в нормальное состояние
+                -- Reset the icon to its normal state
                 self.IconTexture:SetVertexColor(1, 1, 1, 1)
                 self.IconTexture:SetBlendMode("DISABLE")
             end
         end
     end)
 
-    -- Отдельный хук для обновления иконок (junk dimming)
+    -- Separate hook for updating icons (junk dimming)
     hooksecurefunc(buttonProto, "Update", function(self)
         if not (self.masqueGroup and self.masqueGroup.AddButton) then
             return
         end
 
-        -- Если группа AdiBags отключена в Masque, не выполняем хук
+        -- If the AdiBags group is disabled in Masque, don't run the hook
         if self.masqueGroup.db and self.masqueGroup.db.Disabled then
             return
         end
 
-        -- Затемняем кнопку для junk айтемов через SetAlpha (работает надежнее чем VertexColor)
+        -- Dim the button for junk items via SetAlpha (more reliable than VertexColor)
         if self.hasItem then
             local _, _, itemQuality = GetItemInfo(self.itemId)
             if itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-                -- Затемняем всю кнопку
+                -- Dim the whole button
                 self:SetAlpha(0.5)
             else
-                -- Сбрасываем прозрачность
+                -- Reset transparency
                 self:SetAlpha(1)
             end
         else
-            -- Сбрасываем прозрачность для пустых слотов
+            -- Reset transparency for empty slots
             self:SetAlpha(1)
         end
     end)
@@ -582,7 +574,7 @@ if Masque then
     buttonProto.masqueGroup = Masque:Group(addonName, addon.L["Backpack button"])
     bankButtonProto.masqueGroup = Masque:Group(addonName, addon.L["Bank button"])
 
-    -- Хук для ReSkin
+    -- Hook for ReSkin
     local function HookMasqueReSkin(masqueGroup)
         if masqueGroup and masqueGroup.ReSkin and not masqueGroup._AdiBagsReSkinHooked then
             hooksecurefunc(masqueGroup, "ReSkin", function(self_group)
@@ -600,7 +592,7 @@ if Masque then
         end
     end
 
-    -- Хук для Disable
+    -- Hook for Disable
     local function HookMasqueDisable(masqueGroup)
         if masqueGroup and masqueGroup.__Disable and not masqueGroup._AdiBagsDisableHooked then
             hooksecurefunc(masqueGroup, "__Disable", function(self_group)
