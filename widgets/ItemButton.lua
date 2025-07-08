@@ -492,47 +492,47 @@ if Masque then
             end
         end
 
-        -- Находим Normal регион Masque для окрашивания
-        local masqueNormalRegion = self.cachedNormalRegion
-        if not masqueNormalRegion and self.__MSQ_Regions and self.__MSQ_Regions.Normal then
-            masqueNormalRegion = self.__MSQ_Regions.Normal
-            self.cachedNormalRegion = masqueNormalRegion
-        elseif not masqueNormalRegion and self.GetNumRegions then
-            -- Fallback: поиск через GetNumRegions
-            for i = 1, self:GetNumRegions() do
-                local region = select(i, self:GetRegions())
-                if region and region.IsObjectType and region:IsObjectType("Texture") then
-                    local texPath = region:GetTexture()
-                    if texPath and texPath:find("Masque_") and texPath:find("Normal", 1, true) then
-                        masqueNormalRegion = region
-                        self.cachedNormalRegion = masqueNormalRegion
-                        break
-                    end
-                end
-            end
-        end
-
-        -- Окрашиваем Normal регион если есть айтем с качеством
-        if masqueNormalRegion and self.hasItem then
+        -- Перекрашиваем Normal-region Masque через публичное API Core.SetNormalColor
+        -- Это избавляет от ручного поиска региона и работает быстрее.
+        if self.hasItem then
             local _, _, itemQuality = GetItemInfo(self.itemId)
             local isQuestItem, questId = GetContainerItemQuestInfo(self.bag, self.slot)
 
+            local r, g, b, a
             if (isQuestItem or questId) then
-                -- Золотой цвет для квестовых айтемов
-                masqueNormalRegion:SetVertexColor(0.9, 0.7, 0.2, addon.db.profile.qualityOpacity or 0.8)
-                masqueNormalRegion:SetBlendMode("BLEND")
-                masqueNormalRegion:Show()
+                -- Золотой цвет для квестовых предметов
+                r, g, b, a = 0.9, 0.7, 0.2, addon.db.profile.qualityOpacity or 0.8
             elseif itemQuality == ITEM_QUALITY_POOR and addon.db.profile.dimJunk then
-                -- Серый цвет для junk айтемов
-                masqueNormalRegion:SetVertexColor(0.5, 0.5, 0.5, addon.db.profile.qualityOpacity or 0.7)
-                masqueNormalRegion:SetBlendMode("BLEND")
-                masqueNormalRegion:Show()
+                -- Серый цвет для мусора
+                r, g, b, a = 0.5, 0.5, 0.5, addon.db.profile.qualityOpacity or 0.7
             elseif itemQuality and itemQuality >= ITEM_QUALITY_UNCOMMON and addon.db.profile.qualityHighlight then
                 -- Цвет по качеству
-                local r, g, b = GetItemQualityColor(itemQuality)
-                masqueNormalRegion:SetVertexColor(r, g, b, addon.db.profile.qualityOpacity or 1)
-                masqueNormalRegion:SetBlendMode("BLEND")
-                masqueNormalRegion:Show()
+                r, g, b = GetItemQualityColor(itemQuality)
+                a = addon.db.profile.qualityOpacity or 1
+            end
+
+            local msqAPI = LibStub("Masque", true)
+            if msqAPI and msqAPI.GetNormal then
+                local normalRegion = msqAPI:GetNormal(self)
+                if normalRegion then
+                    if r then
+                        normalRegion:SetVertexColor(r, g, b, a)
+                        normalRegion:SetBlendMode("BLEND")
+                        normalRegion:Show()
+                        -- debug
+                        print("AdiBags Masque: applied color", r, g, b, a, "for", self.itemLink or self.itemId)
+                    else
+                        -- Сброс цвета к дефолтному цвету скина
+                        local defaultColor = (self.__MSQ_NormalSkin and self.__MSQ_NormalSkin.Color) or {1,1,1,1}
+                        normalRegion:SetVertexColor(defaultColor[1], defaultColor[2], defaultColor[3], defaultColor[4])
+                        -- debug
+                        print("AdiBags Masque: reset to skin color for", self.itemLink or self.itemId)
+                    end
+                else
+                    print("AdiBags Masque: Normal region not found for button", tostring(self))
+                end
+            else
+                print("AdiBags Masque: MSQ API not available")
             end
         end
 
