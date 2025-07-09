@@ -298,6 +298,18 @@ L["Show anchor highlight"] = true
 L["Show green/orange highlight when hovering over bag anchors in manual mode"] = true
 L["Show anchor tooltip"] = true
 L["Show tooltip when hovering over bag anchors"] = true
+L["Anchored"] = true
+L["Mode"] = true
+L["Manual"] = true
+L["Click"] = true
+L["Shift-Click"] = true
+L["Right-Click"] = true
+L["Alt-Left-Click"] = true
+L["to toggle the anchor."] = true
+L["to open bag menu."] = true
+L["to open AdiBags options."] = true
+L["to toggle anchor mode."] = true
+L["to move bag container."] = true
 
 ------------------------ frFR ------------------------
 local locale = GetLocale()
@@ -893,6 +905,18 @@ elseif locale == 'ruRU' then
     L["Show green/orange highlight when hovering over bag anchors in manual mode"] = "Зеленая/оранжевая подсветка при наведении на якорь в ручном режиме"
     L["Show anchor tooltip"] = "Подсказка якоря"
     L["Show tooltip when hovering over bag anchors"] = "Показывать подсказку при наведении на якорь сумки"
+    L["Anchored"] = "Якорный"
+    L["Mode"] = "Режим"
+    L["Manual"] = "Ручной"
+    L["Click"] = "Клик"
+    L["Shift-Click"] = "Shift-Клик"
+    L["Right-Click"] = "Правый клик"
+    L["Alt-Left-Click"] = "Alt-Левый клик"
+    L["to toggle the anchor."] = "переключить якорь."
+    L["to open bag menu."] = "открыть меню сумки."
+    L["to open AdiBags options."] = "открыть настройки AdiBags."
+    L["to toggle anchor mode."] = "переключить режим якоря."
+    L["to move bag container."] = "переместить контейнер сумки."
     L["Unlock anchor"] = "Разблок. якорь"
     L["Use this section to define any item-section association."] = "Использовать эту секцию, для определения любой связной с ней секцией" -- Needs review
     L["Use this to adjust the bag scale."] = "Регулировка масштаба сумок."

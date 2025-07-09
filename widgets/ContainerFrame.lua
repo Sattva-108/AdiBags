@@ -236,12 +236,12 @@ function containerProto:OnCreate(name, bagIds, isBank)
 		--===== Create Tooltip for Anchored Bag Menu =====--
 		local function ShowTooltipAnchored()
 			GameTooltip:SetOwner(AdiBagsBagMenu, "ANCHOR_TOPLEFT", -25, 8)
-			GameTooltip:SetText("\124cFF00FF00                      Anchored\124r\124cff00bfff Mode\124r")
+			GameTooltip:SetText("\124cFF00FF00"..L["Anchored"].."\124r\124cff00bfff "..L["Mode"].."\124r")
 			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to toggle the anchor.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to open bag menu.|r")			
-			GameTooltip:AddLine("|cffeda55fRight-Click|r |cff99ff00to open AdiBags options.|r")
-			GameTooltip:AddLine("|cffeda55fAlt-Left-Click|r |cff99ff00to toggle anchor mode.|r")				
+			GameTooltip:AddLine("|cffeda55f"..L["Click"].."|r |cff99ff00"..L["to toggle the anchor."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Shift-Click"].."|r |cff99ff00"..L["to open bag menu."].."|r")			
+			GameTooltip:AddLine("|cffeda55f"..L["Right-Click"].."|r |cff99ff00"..L["to open AdiBags options."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Alt-Left-Click"].."|r |cff99ff00"..L["to toggle anchor mode."].."|r")				
 			GameTooltip:SetBackdropColor(0, 0, 0, 1) -- Change the alpha value here
 			GameTooltip:Show()
 		end
@@ -375,19 +375,19 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
 		local function ShowTooltipManual()
 			GameTooltip:SetOwner(anchor, "ANCHOR_TOPLEFT", -25, 8)
-			GameTooltip:SetText("\124cFFFFA500                          Manual\124r \124cff00bfffMode\124r")
+			GameTooltip:SetText("\124cFFFFA500"..L["Manual"].."\124r \124cff00bfff"..L["Mode"].."\124r")
 			GameTooltip:AddLine(" ")
 			if addon.db.profile.clickMode == 0 then
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to open bag menu.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to move bag container.|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Click"].."|r |cff99ff00"..L["to open bag menu."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Shift-Click"].."|r |cff99ff00"..L["to move bag container."].."|r")
 			else
 
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to move bag container.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to open bag menu.|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Click"].."|r |cff99ff00"..L["to move bag container."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Shift-Click"].."|r |cff99ff00"..L["to open bag menu."].."|r")
 			end
 
-			GameTooltip:AddLine("|cffeda55fRight-Click|r |cff99ff00to open AdiBags options.|r")
-			GameTooltip:AddLine("|cffeda55fAlt-Left-Click|r |cff99ff00to toggle anchor mode.|r")	
+			GameTooltip:AddLine("|cffeda55f"..L["Right-Click"].."|r |cff99ff00"..L["to open AdiBags options."].."|r")
+			GameTooltip:AddLine("|cffeda55f"..L["Alt-Left-Click"].."|r |cff99ff00"..L["to toggle anchor mode."].."|r")	
 			GameTooltip:SetBackdropColor(0, 0, 0, 1) -- Change the alpha value here
 			GameTooltip:Show()
 		end
