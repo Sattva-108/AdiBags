@@ -365,6 +365,13 @@ function addon:GetOptions()
 							[1] = "Swap",
 						},
 							disabled = function(info) return (info.handler and info.handler:IsDisabled(info)) or addon.db.profile.positionMode == 'anchored' end,
+					},
+					showAnchorHighlight = {
+						name = "Show anchor highlight",
+						desc = "Show green/orange highlight when hovering over bag anchors in manual mode",
+						type = 'toggle',
+						order = 146,
+						disabled = function(info) return (info.handler and info.handler:IsDisabled(info)) or addon.db.profile.positionMode == 'anchored' end,
 					},					
 					laxOrdering = {
 						name = L['Layout priority'],

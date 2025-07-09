@@ -336,13 +336,17 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
 
 		AdiBagsBagMenu:SetScript("OnEnter", function()
-			background:SetTexture(0, 1, 0, 0.5)
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(0, 1, 0, 0.5)
+			end
 			ShowTooltipAnchored()
 		end)
 
 
 		AdiBagsBagMenu:SetScript("OnLeave", function()
-			background:SetTexture(0, 1, 0, 0)
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(0, 1, 0, 0)
+			end
 			GameTooltip:Hide()
 		end)
 
@@ -529,13 +533,17 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
 
 		anchor:SetScript("OnEnter", function()
-			background:SetTexture(1, 0.5, 0, 0.5)
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(1, 0.5, 0, 0.5)
+			end
 			ShowTooltipManual()
 		end)
 
 
 		anchor:SetScript("OnLeave", function()
-			background:SetTexture(0, 1, 0, 0)
+			if addon.db.profile.showAnchorHighlight then
+				background:SetTexture(0, 1, 0, 0)
+			end
 			GameTooltip:Hide()
 		end)
 
