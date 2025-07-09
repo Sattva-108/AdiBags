@@ -297,7 +297,7 @@ L["Swapped"] = true
 L["Show anchor highlight"] = true
 L["Show green/orange highlight when hovering over bag anchors in manual mode"] = true
 L["Show anchor tooltip"] = true
-L["Show tooltip when hovering over bag anchors"] = true
+L["Show tooltip when hovering over bag anchors in both modes"] = true
 L["Anchored"] = true
 L["Mode"] = true
 L["Manual"] = true
@@ -905,7 +905,7 @@ elseif locale == 'ruRU' then
     L["Show anchor highlight"] = "Подсветка якоря"
     L["Show green/orange highlight when hovering over bag anchors in manual mode"] = "Зеленая/оранжевая подсветка при наведении на якорь в ручном режиме"
     L["Show anchor tooltip"] = "Подсказка якоря"
-    L["Show tooltip when hovering over bag anchors"] = "Показывать подсказку при наведении на якорь сумки"
+    L["Show tooltip when hovering over bag anchors in both modes"] = "Показывать подсказку при наведении на якорь в обоих режимах"
     L["Anchored"] = "Якорный"
     L["Mode"] = "Режим"
     L["Manual"] = "Ручной"
