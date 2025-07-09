@@ -238,8 +238,8 @@ function containerProto:OnCreate(name, bagIds, isBank)
 			GameTooltip:SetOwner(AdiBagsBagMenu, "ANCHOR_TOPLEFT", -25, 8)
 			GameTooltip:SetText("\124cFF00FF00                      Anchored\124r\124cff00bfff Mode\124r")
 			GameTooltip:AddLine(" ")
-			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to open bag menu.|r")
-			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to toggle the anchor.|r")			
+			GameTooltip:AddLine("|cffeda55fClick|r |cff99ff00to toggle the anchor.|r")
+			GameTooltip:AddLine("|cffeda55fShift-Click|r |cff99ff00to open bag menu.|r")			
 			GameTooltip:AddLine("|cffeda55fRight-Click|r |cff99ff00to open AdiBags options.|r")
 			GameTooltip:AddLine("|cffeda55fAlt-Left-Click|r |cff99ff00to toggle anchor mode.|r")				
 			GameTooltip:SetBackdropColor(0, 0, 0, 1) -- Change the alpha value here
@@ -292,7 +292,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
 				local threshold = 200 -- adjust this value to change the distance from the top edge
 
 
-				if y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() and GetTime() - (self.lastClickTime or 0) < 1 then
+				if y > screenHeight - threshold and not IsAltKeyDown() and IsShiftKeyDown() and GetTime() - (self.lastClickTime or 0) < 1 then
 
     				CloseMenus()
    					self.lastClickTime = 0
@@ -301,13 +301,13 @@ function containerProto:OnCreate(name, bagIds, isBank)
    					end
 
 
-				elseif y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() then -- if the cursor is within the "threshold" distance
+				elseif y > screenHeight - threshold and not IsAltKeyDown() and IsShiftKeyDown() then -- if the cursor is within the "threshold" distance
 
 					self.lastClickTime = GetTime()
 					EasyMenu(menuList, menuFrame, "AdiBagsBagMenu", 0, 0, "MENU", 2)
 
 
-				elseif IsShiftKeyDown() then
+				elseif not IsShiftKeyDown() and not IsAltKeyDown() then
 
 					addon:ToggleAnchor()
 					CloseMenus()
@@ -319,7 +319,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
 					self.lastClickTime = 0
 
 
-				elseif button == "LeftButton" and GetTime() - (self.lastClickTime or 0) < 1 then
+				elseif button == "LeftButton" and IsShiftKeyDown() and GetTime() - (self.lastClickTime or 0) < 1 then
 
     				CloseMenus()
    					self.lastClickTime = 0
@@ -327,7 +327,7 @@ function containerProto:OnCreate(name, bagIds, isBank)
    						ShowTooltipAnchored()
    					end
 
-				elseif button == "LeftButton" then
+				elseif button == "LeftButton" and IsShiftKeyDown() then
 
 					self.lastClickTime = GetTime()
 					EasyMenu(menuList, menuFrame, "AdiBagsBagMenu", -23, 146, "MENU", 2)

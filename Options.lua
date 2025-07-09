@@ -355,14 +355,14 @@ function addon:GetOptions()
 						step = 0.01,
 					},
 					clickMode = {
-						name = "Bag Menu clicks in manual mode",
-						desc = "Select Swap option if you want:\nLeft-Click to move the bag &\nShift-Click to open the bag menu.",
+						name = L["Manual mode click behavior"],
+						desc = L["Choose how mouse clicks work in manual mode:\n\nNormal: Left-click opens menu, Shift+Left-click moves bag\nSwapped: Left-click moves bag, Shift+Left-click opens menu"],
 						type = 'select',
 						-- width = "half",
 						order = 145,
 						values = {
-							[0] = "Default",
-							[1] = "Swap",
+							[0] = L["Normal"],
+							[1] = L["Swapped"],
 						},
 							disabled = function(info) return (info.handler and info.handler:IsDisabled(info)) or addon.db.profile.positionMode == 'anchored' end,
 					},
