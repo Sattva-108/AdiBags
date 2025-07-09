@@ -296,7 +296,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipAnchored()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipAnchored()
+   					end
 
 
 				elseif y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() then -- if the cursor is within the "threshold" distance
@@ -321,7 +323,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipAnchored()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipAnchored()
+   					end
 
 				elseif button == "LeftButton" then
 
@@ -339,7 +343,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 			if addon.db.profile.showAnchorHighlight then
 				background:SetTexture(0, 1, 0, 0.5)
 			end
-			ShowTooltipAnchored()
+			if addon.db.profile.showAnchorTooltip then
+				ShowTooltipAnchored()
+			end
 		end)
 
 
@@ -347,7 +353,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 			if addon.db.profile.showAnchorHighlight then
 				background:SetTexture(0, 1, 0, 0)
 			end
-			GameTooltip:Hide()
+			if addon.db.profile.showAnchorTooltip then
+				GameTooltip:Hide()
+			end
 		end)
 
 		AdiBagsBagMenu:EnableMouse(true)
@@ -456,7 +464,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 				if not self.isMovingContainer then 
 
 					CloseMenus()
-					ShowTooltipManual()
+					if addon.db.profile.showAnchorTooltip then
+						ShowTooltipManual()
+					end
 
 				end
 
@@ -473,7 +483,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 
 				elseif y > screenHeight - threshold and not IsAltKeyDown() and not IsShiftKeyDown() then 
@@ -485,7 +497,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 				elseif button == "LeftButton" then
 
@@ -507,7 +521,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 
 				elseif addon.db.profile.clickMode == 1 and y > screenHeight - threshold and not IsAltKeyDown() and IsShiftKeyDown() then 
@@ -519,7 +535,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 
     				CloseMenus()
    					self.lastClickTime = 0
-   					ShowTooltipManual()
+   					if addon.db.profile.showAnchorTooltip then
+   						ShowTooltipManual()
+   					end
 
 				elseif addon.db.profile.clickMode == 1 and button == "LeftButton" and IsShiftKeyDown() then
 
@@ -536,7 +554,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 			if addon.db.profile.showAnchorHighlight then
 				background:SetTexture(1, 0.5, 0, 0.5)
 			end
-			ShowTooltipManual()
+			if addon.db.profile.showAnchorTooltip then
+				ShowTooltipManual()
+			end
 		end)
 
 
@@ -544,7 +564,9 @@ function containerProto:OnCreate(name, bagIds, isBank)
 			if addon.db.profile.showAnchorHighlight then
 				background:SetTexture(0, 1, 0, 0)
 			end
-			GameTooltip:Hide()
+			if addon.db.profile.showAnchorTooltip then
+				GameTooltip:Hide()
+			end
 		end)
 
 

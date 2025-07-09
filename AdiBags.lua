@@ -157,6 +157,7 @@ local DEFAULT_SETTINGS = {
 		maxHeight = 0.60,
 		clickMode = 1,
 		showAnchorHighlight = false,
+		showAnchorTooltip = true,
 		laxOrdering = 1,
 		qualityHighlight = true,
 		qualityOpacity = 1.0,

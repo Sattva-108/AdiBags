@@ -370,7 +370,14 @@ function addon:GetOptions()
 						name = "Show anchor highlight",
 						desc = "Show green/orange highlight when hovering over bag anchors in manual mode",
 						type = 'toggle',
-						order = 146,
+						order = 145.1,
+						disabled = function(info) return (info.handler and info.handler:IsDisabled(info)) or addon.db.profile.positionMode == 'anchored' end,
+					},
+					showAnchorTooltip = {
+						name = "Show anchor tooltip",
+						desc = "Show tooltip when hovering over bag anchors",
+						type = 'toggle',
+						order = 145.2,
 						disabled = function(info) return (info.handler and info.handler:IsDisabled(info)) or addon.db.profile.positionMode == 'anchored' end,
 					},					
 					laxOrdering = {
