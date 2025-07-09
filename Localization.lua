@@ -286,6 +286,14 @@ L["Bank bag #%d"] = true
 L["Click to toggle the equipped bag panel, so you can change them."] = true
 L["Close"] = true
 L["Keyring"] = true
+L["Reset bag position"] = true
+L["Unlock Anchor"] = true
+L["Manual Filtering"] = true
+L["Settings"] = true
+L["Show anchor highlight"] = true
+L["Show green/orange highlight when hovering over bag anchors in manual mode"] = true
+L["Show anchor tooltip"] = true
+L["Show tooltip when hovering over bag anchors"] = true
 
 ------------------------ frFR ------------------------
 local locale = GetLocale()
@@ -869,6 +877,14 @@ elseif locale == 'ruRU' then
     L["Track new items"] = "Следить за новыми предметами"
     L["Track new items in each bag, displaying a glowing aura over them and putting them in a special section. \"New\" status can be reset by clicking on the small \"N\" button at top left of bags."] = "Отслеживать новые предметы в каждой сумке, подсвечивать их и помещать в отдельную секцию. Статус \"Новое\" может быть сброшен кликом по небольшой кнопке \"N\" находящейся, в верхней левой стороне окна сумок."
     L["Uncheck this to disable AdiBags."] = "Снимите галочку штобы выключить AdiBags."
+    L["Reset bag position"] = "Сброс позиции сумки"
+    L["Unlock Anchor"] = "Разблокировать якорь"
+    L["Manual Filtering"] = "Ручная фильтрация"
+    L["Settings"] = "Настройки"
+    L["Show anchor highlight"] = "Подсветка якоря"
+    L["Show green/orange highlight when hovering over bag anchors in manual mode"] = "Зеленая/оранжевая подсветка при наведении на якорь в ручном режиме"
+    L["Show anchor tooltip"] = "Подсказка якоря"
+    L["Show tooltip when hovering over bag anchors"] = "Показывать подсказку при наведении на якорь сумки"
     L["Unlock anchor"] = "Разблок. якорь"
     L["Use this section to define any item-section association."] = "Использовать эту секцию, для определения любой связной с ней секцией" -- Needs review
     L["Use this to adjust the bag scale."] = "Регулировка масштаба сумок."
