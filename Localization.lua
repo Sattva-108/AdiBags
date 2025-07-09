@@ -310,6 +310,7 @@ L["to open bag menu."] = true
 L["to open AdiBags options."] = true
 L["to toggle anchor mode."] = true
 L["to move bag container."] = true
+L["mode."] = true
 
 ------------------------ frFR ------------------------
 local locale = GetLocale()
@@ -917,6 +918,7 @@ elseif locale == 'ruRU' then
     L["to open AdiBags options."] = "открыть настройки AdiBags."
     L["to toggle anchor mode."] = "переключить режим якоря."
     L["to move bag container."] = "переместить контейнер сумки."
+    L["mode."] = "режим."
     L["Unlock anchor"] = "Разблок. якорь"
     L["Use this section to define any item-section association."] = "Использовать эту секцию, для определения любой связной с ней секцией" -- Needs review
     L["Use this to adjust the bag scale."] = "Регулировка масштаба сумок."

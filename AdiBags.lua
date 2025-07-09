@@ -1022,7 +1022,7 @@ function addon:ToggleCurrentLayout()
 		self.db.profile.positionMode = 'manual'
 
 		--===== Add Message to error frame about chaning anchoring mode. =====--
-		UIErrorsFrame:AddMessage("\124cFFFFA500Manual\124r \124cff00bfffmode.\124r", 1.0, 0.0, 0.0, 53, 1);
+		UIErrorsFrame:AddMessage("\124cFFFFA500"..L["Manual"].."\124r \124cff00bfff"..L["mode."].."\124r", 1.0, 0.0, 0.0, 53, 1);
 
 
 		-- First call with a duration of 0.5 seconds to remove delay of AdiBags message.
@@ -1043,7 +1043,7 @@ function addon:ToggleCurrentLayout()
 
 	elseif self.db.profile.positionMode == 'manual' then
 
-		UIErrorsFrame:AddMessage("\124cFF00FF00Anchored\124r\124cff00bfff mode.\124r", 1.0, 0.0, 0.0, 53, 1);
+		UIErrorsFrame:AddMessage("\124cFF00FF00"..L["Anchored"].."\124r\124cff00bfff "..L["mode."].."\124r", 1.0, 0.0, 0.0, 53, 1);
 
 
 		UIErrorsFrame:SetTimeVisible(0.5)
